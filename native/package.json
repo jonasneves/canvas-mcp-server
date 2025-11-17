@@ -7,7 +7,9 @@
     "canvas-mcp-host": "./host.js"
   },
   "scripts": {
-    "start": "node host.js"
+    "start": "node host.js",
+    "install-host": "node install.js",
+    "uninstall-host": "node uninstall.js"
   },
   "keywords": ["mcp", "canvas", "lms"],
   "author": "",

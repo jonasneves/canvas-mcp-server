@@ -1,0 +1,6 @@
+node_modules/
+*.log
+*.png
+*.jpg
+*.svg
+native/package-lock.json
