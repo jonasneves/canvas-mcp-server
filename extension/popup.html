@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 360px;
+      margin: 0;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #fff;
+      color: #1F2937;
+      line-height: 1.5;
+    }
+
+    /* Header */
+    .header {
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #E5E7EB;
+    }
+
+    .title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+      margin: 0;
+      letter-spacing: -0.01em;
+    }
+
+    /* Canvas URL Card */
+    .canvas-url {
+      padding: 12px;
+      margin-bottom: 16px;
+      background: #FAFAFA;
+      border: 1px solid #E5E7EB;
+      border-radius: 8px;
+    }
+
+    .canvas-url-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: #6B7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .canvas-url-input {
+      width: 100%;
+      padding: 8px 12px;
+      font-size: 13px;
+      border: 1px solid #E5E7EB;
+      border-radius: 6px;
+      font-family: ui-monospace, 'SF Mono', Monaco, monospace;
+      color: #111827;
+      background: #fff;
+      transition: all 0.15s ease;
+      margin-bottom: 8px;
+    }
+
+    .canvas-url-input:focus {
+      outline: none;
+      border-color: #00539B;
+      box-shadow: 0 0 0 3px rgba(0, 83, 155, 0.1);
+    }
+
+    .canvas-url-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .canvas-url-buttons button {
+      flex: 1;
+    }
+
+    .canvas-url-status {
+      margin-top: 8px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      display: none;
+    }
+
+    .canvas-url-status.show {
+      display: block;
+    }
+
+    .canvas-url-status.success {
+      background: #ECFDF5;
+      color: #059669;
+      border: 1px solid #D1FAE5;
+    }
+
+    .canvas-url-status.error {
+      background: #FEF2F2;
+      color: #DC2626;
+      border: 1px solid #FEE2E2;
+    }
+
+    /* Status Section */
+    .status-section {
+      margin-bottom: 20px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: #6B7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .status-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      background: #FAFAFA;
+      border: 1px solid #E5E7EB;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    .status-label {
+      color: #6B7280;
+    }
+
+    .status-value {
+      font-weight: 500;
+      color: #111827;
+    }
+
+    .status-value.connected {
+      color: #059669;
+    }
+
+    .status-value.disconnected {
+      color: #DC2626;
+    }
+
+    /* Buttons */
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    button {
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+
+    button.primary {
+      background: #00539B;
+      color: white;
+    }
+
+    button.primary:hover {
+      background: #012169;
+    }
+
+    button.primary:active {
+      transform: scale(0.98);
+    }
+
+    button.secondary {
+      background: #F3F4F6;
+      color: #374151;
+      border: 1px solid #E5E7EB;
+    }
+
+    button.secondary:hover {
+      background: #E5E7EB;
+    }
+
+    button.ghost {
+      background: transparent;
+      color: #6B7280;
+      font-size: 12px;
+      padding: 8px 12px;
+    }
+
+    button.ghost:hover {
+      background: #F9FAFB;
+      color: #374151;
+    }
+
+    /* Setup Card */
+    .setup-card {
+      margin-bottom: 16px;
+      border: 1px solid #E5E7EB;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .setup-header {
+      padding: 12px;
+      background: #FAFAFA;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 500;
+      color: #374151;
+    }
+
+    .setup-header:hover {
+      background: #F3F4F6;
+    }
+
+    .chevron {
+      transition: transform 0.2s ease;
+      color: #9CA3AF;
+      font-size: 12px;
+    }
+
+    .chevron.open {
+      transform: rotate(90deg);
+    }
+
+    .setup-content {
+      display: none;
+      padding: 16px;
+      font-size: 12px;
+      color: #6B7280;
+      line-height: 1.6;
+      background: #fff;
+    }
+
+    .setup-content.open {
+      display: block;
+    }
+
+    .setup-content ol {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .setup-content li {
+      margin-bottom: 4px;
+    }
+
+    .setup-content code {
+      background: #F3F4F6;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: ui-monospace, 'SF Mono', Monaco, monospace;
+      font-size: 11px;
+      color: #111827;
+    }
+
+    /* Settings */
+    .settings-field {
+      margin-bottom: 12px;
+    }
+
+    .settings-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      color: #6B7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .settings-input {
+      width: 100%;
+      padding: 8px 12px;
+      font-size: 13px;
+      border: 1px solid #E5E7EB;
+      border-radius: 6px;
+      font-family: ui-monospace, 'SF Mono', Monaco, monospace;
+      color: #111827;
+      background: #FAFAFA;
+      transition: all 0.15s ease;
+    }
+
+    .settings-input:focus {
+      outline: none;
+      border-color: #00539B;
+      background: #fff;
+    }
+
+    .settings-help {
+      font-size: 11px;
+      color: #9CA3AF;
+      margin-top: 4px;
+    }
+
+    .settings-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .settings-buttons button {
+      flex: 1;
+    }
+
+    .settings-status {
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      display: none;
+    }
+
+    .settings-status.show {
+      display: block;
+    }
+
+    .settings-status.success {
+      background: #ECFDF5;
+      color: #059669;
+      border: 1px solid #D1FAE5;
+    }
+
+    .settings-status.error {
+      background: #FEF2F2;
+      color: #DC2626;
+      border: 1px solid #FEE2E2;
+    }
+
+    /* Output */
+    .output {
+      display: none;
+      padding: 12px;
+      margin-top: 16px;
+      background: #FAFAFA;
+      border: 1px solid #E5E7EB;
+      border-radius: 6px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-family: ui-monospace, 'SF Mono', Monaco, monospace;
+      font-size: 11px;
+      color: #374151;
+      white-space: pre-wrap;
+      word-break: break-all;
+      line-height: 1.5;
+    }
+
+    .output.show {
+      display: block;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #D1D5DB;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #9CA3AF;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="title">Canvas MCP</h1>
+  </div>
+
+  <div class="canvas-url">
+    <div class="canvas-url-label">Canvas Instance</div>
+    <input type="text" class="canvas-url-input" id="canvasUrlInput" placeholder="https://canvas.instructure.com">
+    <div class="canvas-url-buttons">
+      <button class="secondary small" id="saveCanvasUrl">Save</button>
+      <button class="ghost small" id="autoDetectUrl">Auto-Detect</button>
+    </div>
+    <div class="canvas-url-status" id="canvasUrlStatus"></div>
+  </div>
+
+  <div class="status-section">
+    <div class="section-label">Status</div>
+    <div class="status-grid">
+      <div class="status-item">
+        <span class="status-label">MCP Server</span>
+        <span class="status-value" id="nativeStatus">Checking...</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">Courses</span>
+        <span class="status-value" id="courseCount">-</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">Last Sync</span>
+        <span class="status-value" id="lastUpdate">Never</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="button-group">
+    <button class="secondary" id="refreshData">Refresh Canvas Data</button>
+    <button class="secondary" id="testListCourses">Test Connection</button>
+  </div>
+
+  <div class="setup-card">
+    <div class="setup-header" id="claudeConfigToggle">
+      <span>Setup Instructions</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="setup-content" id="claudeConfigContent">
+      <ol>
+        <li>Open Claude Desktop → Settings → Extensions</li>
+        <li>Click "Install Unpacked Extension"</li>
+        <li>Select folder: <code>canvas-mcp-native</code></li>
+        <li>Click "Refresh Canvas Data" above</li>
+        <li>Ask Claude: "What are my Canvas courses?"</li>
+      </ol>
+    </div>
+  </div>
+
+
+  <div class="output" id="output"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
