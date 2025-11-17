@@ -1,0 +1,33 @@
+{
+  "name": "canvas-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server that provides Claude Desktop with access to Canvas LMS data",
+  "keywords": [
+    "canvas",
+    "lms",
+    "mcp",
+    "claude",
+    "education",
+    "chrome-extension"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/canvas-mcp-server.git"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "scripts": {
+    "install-host": "cd native && npm install && npm run install-host",
+    "start": "cd native && npm start",
+    "test": "echo \"Error: no tests specified\" && exit 1",
+    "lint": "eslint extension/**/*.js native/**/*.js --fix",
+    "format": "prettier --write \"**/*.{js,json,md}\""
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5"
+  }
+}

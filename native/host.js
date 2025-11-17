@@ -12,10 +12,11 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 const readline = require('readline');
+const config = require('./config');
 
 // Configuration
-const HTTP_PORT = 8765;  // For Chrome Extension data
-const LOG_FILE = path.join(process.env.HOME || process.env.USERPROFILE, 'canvas-mcp-host.log');
+const HTTP_PORT = config.httpPort;
+const LOG_FILE = config.logFile || path.join(process.env.HOME || process.env.USERPROFILE, 'canvas-mcp-host.log');
 
 // In-memory cache for Canvas data
 let canvasData = {
@@ -30,12 +31,36 @@ let canvasData = {
   lastUpdate: null
 };
 
-function log(message) {
+function log(message, level = 'INFO') {
   const timestamp = new Date().toISOString();
-  const logMessage = `[${timestamp}] ${message}\n`;
-  fs.appendFileSync(LOG_FILE, logMessage);
+  const logMessage = `[${timestamp}] [${level}] ${message}\n`;
+
+  try {
+    fs.appendFileSync(LOG_FILE, logMessage);
+  } catch (error) {
+    // If we can't write to log file, at least write to stderr
+    process.stderr.write(`[ERROR] Failed to write to log file: ${error.message}\n`);
+  }
+
   // Log to stderr (won't interfere with stdout MCP protocol)
-  process.stderr.write(logMessage);
+  if (config.verboseLogging || level === 'ERROR' || level === 'WARN') {
+    process.stderr.write(logMessage);
+  }
+}
+
+function logError(message, error) {
+  const errorDetails = error ? ` - ${error.message}\n${error.stack}` : '';
+  log(`${message}${errorDetails}`, 'ERROR');
+}
+
+function logWarn(message) {
+  log(message, 'WARN');
+}
+
+function logDebug(message) {
+  if (config.verboseLogging) {
+    log(message, 'DEBUG');
+  }
 }
 
 log('Canvas MCP Server started');
@@ -46,7 +71,8 @@ log('Canvas MCP Server started');
 
 function handleRequest(req, res) {
   // Enable CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const allowedOrigin = config.cors.allowedOrigins[0] || '*';
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
@@ -117,9 +143,13 @@ function handleRequest(req, res) {
         res.end(JSON.stringify({ status: 'success', received: true }));
 
       } catch (error) {
-        log(`Error parsing Canvas data: ${error.message}`);
+        logError('Error parsing Canvas data', error);
         res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ status: 'error', message: error.message }));
+        res.end(JSON.stringify({
+          status: 'error',
+          message: 'Failed to parse Canvas data',
+          details: error.message
+        }));
       }
     });
 
@@ -511,13 +541,14 @@ async function handleMCPRequest(request) {
     };
 
   } catch (error) {
-    log(`Error in MCP handler: ${error.message}`);
+    logError('Error in MCP handler', error);
     return {
       jsonrpc: "2.0",
       id: id,
       error: {
         code: -32603,
-        message: error.message
+        message: error.message,
+        data: config.verboseLogging ? error.stack : undefined
       }
     };
   }
@@ -533,6 +564,15 @@ httpServer.listen(HTTP_PORT, 'localhost', () => {
   log(`Extension endpoint: http://localhost:${HTTP_PORT}/canvas-data`);
 });
 
+httpServer.on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
+    logError(`Port ${HTTP_PORT} is already in use. Please change the port in config.js or set CANVAS_MCP_PORT environment variable.`, error);
+  } else {
+    logError('HTTP server error', error);
+  }
+  process.exit(1);
+});
+
 // Start STDIO handler for Claude Desktop
 log('Starting STDIO handler for Claude Desktop');
 
@@ -545,24 +585,27 @@ const rl = readline.createInterface({
 rl.on('line', async (line) => {
   try {
     const request = JSON.parse(line);
-    log(`MCP Request: ${request.method}`);
+    logDebug(`MCP Request: ${request.method}`);
 
     const response = await handleMCPRequest(request);
 
     // Send response via stdout (newline-delimited JSON)
     process.stdout.write(JSON.stringify(response) + '\n');
+    logDebug(`MCP Response sent for: ${request.method}`);
 
   } catch (error) {
-    log(`Error handling request: ${error.message}`);
+    logError('Error handling MCP request', error);
 
     // Send error response
-    process.stdout.write(JSON.stringify({
+    const errorResponse = {
       jsonrpc: "2.0",
       error: {
         code: -32700,
-        message: `Parse error: ${error.message}`
+        message: 'Parse error: Invalid JSON received',
+        data: config.verboseLogging ? error.message : undefined
       }
-    }) + '\n');
+    };
+    process.stdout.write(JSON.stringify(errorResponse) + '\n');
   }
 });
 
