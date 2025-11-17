@@ -5,180 +5,180 @@
   <style>
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     body {
-      width: 360px;
-      margin: 0;
-      padding: 20px;
+      width: 380px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #fff;
-      color: #1F2937;
+      background: #F3F2F1;
+      color: #262626;
       line-height: 1.5;
     }
 
     /* Header */
     .header {
-      margin-bottom: 20px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid #E5E7EB;
+      background: linear-gradient(to right, #dc2626, #339898);
+      padding: 20px;
+      position: relative;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(to right, rgba(220, 38, 38, 0.3), rgba(51, 152, 152, 0.3));
+    }
+
+    .header-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      overflow: hidden;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .header-icon img {
+      width: 100%;
+      height: 100%;
+      display: block;
     }
 
     .title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #111827;
-      margin: 0;
-      letter-spacing: -0.01em;
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+      letter-spacing: -0.02em;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
 
-    /* Canvas URL Card */
-    .canvas-url {
-      padding: 12px;
-      margin-bottom: 16px;
-      background: #FAFAFA;
+    /* Content */
+    .content {
+      padding: 20px;
+    }
+
+    /* Cards */
+    .card {
+      background: white;
       border: 1px solid #E5E7EB;
-      border-radius: 8px;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .canvas-url-label {
+    .card:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .card-title {
       font-size: 11px;
-      font-weight: 500;
+      font-weight: 600;
       color: #6B7280;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-bottom: 6px;
+      margin-bottom: 12px;
     }
 
+    /* Canvas URL */
     .canvas-url-input {
       width: 100%;
-      padding: 8px 12px;
+      padding: 10px 12px;
       font-size: 13px;
       border: 1px solid #E5E7EB;
-      border-radius: 6px;
+      border-radius: 8px;
       font-family: ui-monospace, 'SF Mono', Monaco, monospace;
       color: #111827;
-      background: #fff;
-      transition: all 0.15s ease;
-      margin-bottom: 8px;
+      background: #FAFAFA;
+      transition: all 0.2s ease;
+      margin-bottom: 10px;
     }
 
     .canvas-url-input:focus {
       outline: none;
       border-color: #00539B;
+      background: white;
       box-shadow: 0 0 0 3px rgba(0, 83, 155, 0.1);
     }
 
-    .canvas-url-buttons {
+    .button-row {
       display: flex;
       gap: 8px;
     }
 
-    .canvas-url-buttons button {
-      flex: 1;
-    }
-
-    .canvas-url-status {
-      margin-top: 8px;
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 12px;
-      display: none;
-    }
-
-    .canvas-url-status.show {
-      display: block;
-    }
-
-    .canvas-url-status.success {
-      background: #ECFDF5;
-      color: #059669;
-      border: 1px solid #D1FAE5;
-    }
-
-    .canvas-url-status.error {
-      background: #FEF2F2;
-      color: #DC2626;
-      border: 1px solid #FEE2E2;
-    }
-
-    /* Status Section */
-    .status-section {
-      margin-bottom: 20px;
-    }
-
-    .section-label {
-      font-size: 11px;
-      font-weight: 500;
-      color: #6B7280;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 8px;
-    }
-
+    /* Status Grid */
     .status-grid {
       display: grid;
-      gap: 8px;
+      gap: 10px;
     }
 
     .status-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 12px;
+      padding: 12px 14px;
       background: #FAFAFA;
       border: 1px solid #E5E7EB;
-      border-radius: 6px;
+      border-radius: 8px;
       font-size: 13px;
+      transition: all 0.2s ease;
+    }
+
+    .status-item:hover {
+      background: white;
+      border-color: #00539B;
     }
 
     .status-label {
       color: #6B7280;
+      font-weight: 500;
     }
 
     .status-value {
-      font-weight: 500;
+      font-weight: 600;
       color: #111827;
     }
 
     .status-value.connected {
-      color: #059669;
+      color: #339898;
     }
 
     .status-value.disconnected {
-      color: #DC2626;
+      color: #C84E00;
     }
 
     /* Buttons */
-    .button-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-
     button {
       padding: 10px 16px;
       font-size: 13px;
       font-weight: 500;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: all 0.2s ease;
       font-family: inherit;
     }
 
     button.primary {
-      background: #00539B;
+      background: linear-gradient(135deg, #00539B 0%, #012169 100%);
       color: white;
     }
 
     button.primary:hover {
-      background: #012169;
-    }
-
-    button.primary:active {
-      transform: scale(0.98);
+      box-shadow: 0 4px 12px rgba(0, 83, 155, 0.3);
     }
 
     button.secondary {
@@ -199,39 +199,89 @@
     }
 
     button.ghost:hover {
-      background: #F9FAFB;
-      color: #374151;
+      background: #F3F4F6;
     }
 
-    /* Setup Card */
-    .setup-card {
-      margin-bottom: 16px;
-      border: 1px solid #E5E7EB;
+    button:active {
+      opacity: 0.9;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Status Messages */
+    .status-message {
+      margin-top: 10px;
+      padding: 10px 12px;
       border-radius: 8px;
-      overflow: hidden;
+      font-size: 12px;
+      display: none;
+      font-weight: 500;
     }
 
-    .setup-header {
+    .status-message.show {
+      display: block;
+    }
+
+    .status-message.success {
+      background: #ECFDF5;
+      color: #059669;
+      border: 1px solid #D1FAE5;
+    }
+
+    .status-message.error {
+      background: #FEF2F2;
+      color: #DC2626;
+      border: 1px solid #FEE2E2;
+    }
+
+    /* Output */
+    .output {
+      margin-top: 12px;
+      padding: 14px;
+      background: #1F2937;
+      color: #E5E7EB;
+      border-radius: 8px;
+      font-family: ui-monospace, 'SF Mono', Monaco, monospace;
+      font-size: 11px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 180px;
+      overflow-y: auto;
+      display: none;
+      line-height: 1.6;
+    }
+
+    .output.show {
+      display: block;
+    }
+
+    /* Setup Instructions */
+    .setup-toggle {
+      width: 100%;
       padding: 12px;
       background: #FAFAFA;
+      border: none;
+      border-radius: 8px;
       cursor: pointer;
-      user-select: none;
       display: flex;
       align-items: center;
       justify-content: space-between;
       font-size: 13px;
       font-weight: 500;
       color: #374151;
+      transition: all 0.2s ease;
     }
 
-    .setup-header:hover {
+    .setup-toggle:hover {
       background: #F3F4F6;
     }
 
     .chevron {
       transition: transform 0.2s ease;
       color: #9CA3AF;
-      font-size: 12px;
     }
 
     .chevron.open {
@@ -243,8 +293,10 @@
       padding: 16px;
       font-size: 12px;
       color: #6B7280;
-      line-height: 1.6;
-      background: #fff;
+      line-height: 1.7;
+      background: #FAFAFA;
+      border-radius: 0 0 8px 8px;
+      margin-top: -4px;
     }
 
     .setup-content.open {
@@ -257,116 +309,22 @@
     }
 
     .setup-content li {
-      margin-bottom: 4px;
-    }
-
-    .setup-content code {
-      background: #F3F4F6;
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-family: ui-monospace, 'SF Mono', Monaco, monospace;
-      font-size: 11px;
-      color: #111827;
-    }
-
-    /* Settings */
-    .settings-field {
-      margin-bottom: 12px;
-    }
-
-    .settings-label {
-      display: block;
-      font-size: 11px;
-      font-weight: 500;
-      color: #6B7280;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
       margin-bottom: 6px;
     }
 
-    .settings-input {
-      width: 100%;
-      padding: 8px 12px;
-      font-size: 13px;
-      border: 1px solid #E5E7EB;
-      border-radius: 6px;
+    .setup-content code {
+      background: white;
+      padding: 2px 6px;
+      border-radius: 4px;
       font-family: ui-monospace, 'SF Mono', Monaco, monospace;
+      font-size: 11px;
       color: #111827;
-      background: #FAFAFA;
-      transition: all 0.15s ease;
-    }
-
-    .settings-input:focus {
-      outline: none;
-      border-color: #00539B;
-      background: #fff;
-    }
-
-    .settings-help {
-      font-size: 11px;
-      color: #9CA3AF;
-      margin-top: 4px;
-    }
-
-    .settings-buttons {
-      display: flex;
-      gap: 8px;
-      margin-top: 12px;
-    }
-
-    .settings-buttons button {
-      flex: 1;
-    }
-
-    .settings-status {
-      margin-top: 12px;
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 12px;
-      display: none;
-    }
-
-    .settings-status.show {
-      display: block;
-    }
-
-    .settings-status.success {
-      background: #ECFDF5;
-      color: #059669;
-      border: 1px solid #D1FAE5;
-    }
-
-    .settings-status.error {
-      background: #FEF2F2;
-      color: #DC2626;
-      border: 1px solid #FEE2E2;
-    }
-
-    /* Output */
-    .output {
-      display: none;
-      padding: 12px;
-      margin-top: 16px;
-      background: #FAFAFA;
       border: 1px solid #E5E7EB;
-      border-radius: 6px;
-      max-height: 200px;
-      overflow-y: auto;
-      font-family: ui-monospace, 'SF Mono', Monaco, monospace;
-      font-size: 11px;
-      color: #374151;
-      white-space: pre-wrap;
-      word-break: break-all;
-      line-height: 1.5;
-    }
-
-    .output.show {
-      display: block;
     }
 
     /* Scrollbar */
     ::-webkit-scrollbar {
-      width: 8px;
+      width: 6px;
     }
 
     ::-webkit-scrollbar-track {
@@ -375,7 +333,7 @@
 
     ::-webkit-scrollbar-thumb {
       background: #D1D5DB;
-      border-radius: 4px;
+      border-radius: 3px;
     }
 
     ::-webkit-scrollbar-thumb:hover {
@@ -385,60 +343,79 @@
 </head>
 <body>
   <div class="header">
-    <h1 class="title">Canvas MCP</h1>
-  </div>
-
-  <div class="canvas-url">
-    <div class="canvas-url-label">Canvas Instance</div>
-    <input type="text" class="canvas-url-input" id="canvasUrlInput" placeholder="https://canvas.instructure.com">
-    <div class="canvas-url-buttons">
-      <button class="secondary small" id="saveCanvasUrl">Save</button>
-      <button class="ghost small" id="autoDetectUrl">Auto-Detect</button>
-    </div>
-    <div class="canvas-url-status" id="canvasUrlStatus"></div>
-  </div>
-
-  <div class="status-section">
-    <div class="section-label">Status</div>
-    <div class="status-grid">
-      <div class="status-item">
-        <span class="status-label">MCP Server</span>
-        <span class="status-value" id="nativeStatus">Checking...</span>
+    <div class="header-content">
+      <div class="header-icon">
+        <img src="icon.png" alt="Canvas MCP">
       </div>
-      <div class="status-item">
-        <span class="status-label">Courses</span>
-        <span class="status-value" id="courseCount">-</span>
+      <h1 class="title">Canvas MCP</h1>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Canvas URL -->
+    <div class="card">
+      <div class="card-title">URL</div>
+      <input type="text" class="canvas-url-input" id="canvasUrlInput" placeholder="https://canvas.instructure.com">
+      <div class="button-row">
+        <button class="ghost" id="autoDetectUrl">Auto-Detect</button>
       </div>
-      <div class="status-item">
-        <span class="status-label">Last Sync</span>
-        <span class="status-value" id="lastUpdate">Never</span>
+      <div class="status-message" id="canvasUrlStatus"></div>
+    </div>
+
+    <!-- Status -->
+    <div class="card">
+      <div class="card-title">Status</div>
+      <div class="status-grid">
+        <div class="status-item">
+          <span class="status-label">MCP Server</span>
+          <span class="status-value" id="nativeStatus">Checking...</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Courses</span>
+          <span class="status-value" id="courseCount">-</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Last Sync</span>
+          <span class="status-value" id="lastUpdate">Never</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="card">
+      <div class="card-title">Actions</div>
+      <button class="primary" id="refreshData" style="width: 100%; margin-bottom: 8px;">Sync Canvas Data</button>
+      <button class="secondary" id="testListCourses" style="width: 100%;">Test Connection</button>
+      <div class="output" id="output"></div>
+    </div>
+
+    <!-- Setup Instructions -->
+    <div class="card" style="padding: 0; overflow: hidden;">
+      <button class="setup-toggle" id="claudeConfigToggle">
+        <span>Claude Desktop Setup</span>
+        <span class="chevron">▶</span>
+      </button>
+      <div class="setup-content" id="claudeConfigContent">
+        <ol>
+          <li>Install native host: <code>npm run install-host</code></li>
+          <li>Add to Claude Desktop config (<code>claude_desktop_config.json</code>):</li>
+        </ol>
+        <pre style="background: #1F2937; color: #F9FAFB; padding: 12px; border-radius: 6px; overflow-x: auto; margin: 8px 0;"><code>{
+  "mcpServers": {
+    "canvas": {
+      "command": "node",
+      "args": ["/path/to/native/host.js"]
+    }
+  }
+}</code></pre>
+        <ol start="3">
+          <li>Restart Claude Desktop</li>
+          <li>Load this extension in Chrome/Edge</li>
+          <li>Visit Canvas and click "Sync Canvas Data"</li>
+        </ol>
       </div>
     </div>
   </div>
-
-  <div class="button-group">
-    <button class="secondary" id="refreshData">Refresh Canvas Data</button>
-    <button class="secondary" id="testListCourses">Test Connection</button>
-  </div>
-
-  <div class="setup-card">
-    <div class="setup-header" id="claudeConfigToggle">
-      <span>Setup Instructions</span>
-      <span class="chevron">▶</span>
-    </div>
-    <div class="setup-content" id="claudeConfigContent">
-      <ol>
-        <li>Open Claude Desktop → Settings → Extensions</li>
-        <li>Click "Install Unpacked Extension"</li>
-        <li>Select folder: <code>canvas-mcp-native</code></li>
-        <li>Click "Refresh Canvas Data" above</li>
-        <li>Ask Claude: "What are my Canvas courses?"</li>
-      </ol>
-    </div>
-  </div>
-
-
-  <div class="output" id="output"></div>
 
   <script src="popup.js"></script>
 </body>

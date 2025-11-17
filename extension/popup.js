@@ -134,7 +134,7 @@ const canvasUrlStatus = document.getElementById('canvasUrlStatus');
 
 function showCanvasUrlStatus(message, type) {
   canvasUrlStatus.textContent = message;
-  canvasUrlStatus.className = `canvas-url-status show ${type}`;
+  canvasUrlStatus.className = `status-message show ${type}`;
 
   if (type === 'success') {
     setTimeout(() => {
@@ -158,13 +158,12 @@ function isValidCanvasUrl(url) {
   }
 }
 
-// Save Canvas URL
-document.getElementById('saveCanvasUrl').addEventListener('click', async () => {
+// Auto-save Canvas URL on blur
+canvasUrlInput.addEventListener('blur', async () => {
   const url = canvasUrlInput.value.trim();
 
   if (!url) {
-    showCanvasUrlStatus('Please enter a Canvas URL', 'error');
-    return;
+    return; // Don't show error on blur if empty
   }
 
   if (!isValidCanvasUrl(url)) {
