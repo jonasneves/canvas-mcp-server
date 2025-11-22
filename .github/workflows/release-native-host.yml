@@ -1,0 +1,135 @@
+name: Release Native Host
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build and Release Native Host
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        working-directory: ./native-host
+        run: npm ci
+
+      - name: Create distribution packages
+        run: |
+          # Create dist directory
+          mkdir -p dist
+
+          # Package for all platforms (cross-platform Node.js)
+          cd native-host
+
+          # Create ZIP package (for Chrome extension native messaging setup)
+          zip -r ../dist/canvas-mcp-server-chrome-extension.zip \
+            host.js \
+            manifest.json \
+            package.json \
+            package-lock.json \
+            install.sh \
+            install.bat \
+            README.md
+
+          # Create DXT package (for Claude Desktop drag-and-drop)
+          # DXT is just a renamed ZIP with the MCP server files
+          zip -r ../dist/canvas-mcp-server-native-host.dxt \
+            host.js \
+            manifest.json \
+            package.json \
+            package-lock.json
+
+          echo "Packages created:"
+          ls -lh ../dist/
+
+      - name: Get version
+        id: version
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          else
+            echo "version=dev-$(date +%Y%m%d-%H%M%S)" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create or Update Latest Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'nightly' }}
+          name: ${{ startsWith(github.ref, 'refs/tags/') && format('Canvas MCP Server {0}', github.ref_name) || 'Canvas MCP Server (Nightly)' }}
+          prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
+          files: |
+            dist/canvas-mcp-server-chrome-extension.zip
+            dist/canvas-mcp-server-native-host.dxt
+          body: |
+            ## Canvas MCP Server ${{ steps.version.outputs.version }}
+
+            Connect Claude Desktop to your Canvas data through the Canvas MCP Server Chrome extension.
+
+            ### Installation Options
+
+            **Option 1: Claude Desktop MCP Server (Recommended for Claude Desktop users)**
+            1. Download `canvasflow-native-host.dxt` below
+            2. Open Claude Desktop → Extensions
+            3. Drag the `.dxt` file into the extensions area
+            4. Done! Claude Desktop will handle everything automatically
+
+            **Option 2: Chrome Extension Native Messaging (For Chrome extension integration)**
+
+            Download: [`canvas-mcp-server-chrome-extension.zip`](https://github.com/${{ github.repository }}/releases/download/latest/canvas-mcp-server-chrome-extension.zip)
+
+            This package sets up native messaging between the Chrome extension and the host.
+
+            **macOS/Linux:**
+            ```bash
+            unzip canvas-mcp-server-chrome-extension.zip
+            cd canvas-mcp-server-chrome-extension
+            chmod +x install.sh
+            ./install.sh
+            ```
+
+            **Windows:**
+            1. Extract `canvas-mcp-server-chrome-extension.zip`
+            2. Run `install.bat`
+            3. Follow the prompts to configure your extension ID
+
+            ### After Installation
+
+            1. Get your Canvas MCP Server extension ID from `chrome://extensions/`
+            2. Configure it when prompted (or manually in the manifest)
+            3. Restart Chrome and Claude Desktop
+            4. In Claude Desktop, ask: "What are my Canvas courses?"
+
+            ### Requirements
+
+            - Node.js 14 or higher
+            - Canvas MCP Server Chrome extension installed
+
+            ### What's Included
+
+            - **`canvas-mcp-server-native-host.dxt`**: Drag-and-drop MCP server for Claude Desktop
+            - **`canvas-mcp-server-chrome-extension.zip`**: Chrome extension native messaging setup with automated installers
+            - Cross-platform support (Windows, macOS, Linux)
+            - Interactive installation scripts
+            - Full documentation
+
+            ### Documentation
+
+            Full installation guide: [native-host/README.md](https://github.com/${{ github.repository }}/blob/main/native-host/README.md)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

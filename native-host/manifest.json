@@ -1,0 +1,24 @@
+{
+  "dxt_version": "0.1",
+  "name": "canvas-mcp-server",
+  "display_name": "CanvasFlow MCP Server",
+  "version": "1.0.0",
+  "description": "Connect Claude Desktop to your Canvas LMS data through the CanvasFlow Chrome extension",
+  "long_description": "Access your Canvas LMS courses, assignments, and grades directly from Claude Desktop. This MCP server connects Claude to the CanvasFlow Chrome extension, enabling natural conversations about your coursework.\n\nFeatures: List courses, view assignments and due dates, check grades and submissions, get course information.\n\nSetup: (1) Install the CanvasFlow Chrome extension, (2) Install this MCP server in Claude Desktop, (3) Click 'Refresh Canvas Data' in the extension, (4) Ask Claude about your courses!\n\nRequires: CanvasFlow Chrome extension installed and configured.",
+  "author": {
+    "name": "Jonas Neves",
+    "url": "https://jonasneves.github.io/canvasflow"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jonasneves/canvasflow"
+  },
+  "server": {
+    "type": "node",
+    "entry_point": "host.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/host.js"]
+    }
+  }
+}

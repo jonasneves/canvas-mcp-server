@@ -1,15 +1,18 @@
-# Dependencies
+# Node modules
 node_modules/
 package-lock.json
+native-host/node_modules/
+native-host/package-lock.json
+
+# Build outputs
+dist/
+build/
+*.zip
+*.dxt
 
 # Logs
 *.log
-logs/
 canvas-mcp-host.log
-
-# OS files
-.DS_Store
-Thumbs.db
 
 # IDE
 .vscode/
@@ -18,13 +21,10 @@ Thumbs.db
 *.swo
 *~
 
-# Environment
-.env
-.env.local
+# OS
+.DS_Store
+Thumbs.db
 
-# Build outputs
-dist/
-build/
-
-# Native messaging manifests (generated)
-*.json.bak
+# Temporary files
+*.tmp
+.cache/
