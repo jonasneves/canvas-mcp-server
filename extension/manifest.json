@@ -2,23 +2,25 @@
   "manifest_version": 3,
   "name": "Canvas MCP Server",
   "version": "1.0.0",
-  "description": "MCP Server for Canvas LMS with Native Messaging support",
+  "description": "MCP Server for Canvas LMS - Provides Canvas data to AI assistants via Model Context Protocol",
   "permissions": [
     "storage",
     "activeTab",
     "tabs",
     "alarms",
-    "scripting",
-    "nativeMessaging"
+    "scripting"
   ],
   "host_permissions": [
-    "<all_urls>"
+    "*://*.edu/*",
+    "*://*.instructure.com/*",
+    "*://*.canvaslms.com/*"
   ],
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [{
     "matches": [
+      "*://*.edu/*",
       "*://*.instructure.com/*",
       "*://*.canvaslms.com/*"
     ],
@@ -32,6 +34,6 @@
   "icons": {
     "16": "icon-16.png",
     "48": "icon-48.png",
-    "128": "icon.png"
+    "128": "icon-128.png"
   }
 }

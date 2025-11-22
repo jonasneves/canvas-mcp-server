@@ -2,6 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <link rel="stylesheet" href="colors.css">
   <style>
     * {
       box-sizing: border-box;
@@ -19,7 +20,7 @@
 
     /* Header */
     .header {
-      background: linear-gradient(to right, #dc2626, #0577B1);
+      background: var(--gradient-primary);
       padding: 20px;
       position: relative;
     }
@@ -31,7 +32,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: linear-gradient(to right, rgba(220, 38, 38, 0.3), rgba(5, 119, 177, 0.3));
+      background: linear-gradient(to right, rgba(30, 58, 95, 0.3), rgba(44, 79, 124, 0.3));
     }
 
     .header-content {
@@ -109,9 +110,9 @@
 
     .canvas-url-input:focus {
       outline: none;
-      border-color: #00539B;
+      border-color: var(--color-primary);
       background: white;
-      box-shadow: 0 0 0 3px rgba(0, 83, 155, 0.1);
+      box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1);
     }
 
     .button-row {
@@ -139,7 +140,7 @@
 
     .status-item:hover {
       background: white;
-      border-color: #00539B;
+      border-color: var(--color-primary);
     }
 
     .status-label {
@@ -153,11 +154,11 @@
     }
 
     .status-value.connected {
-      color: #339898;
+      color: var(--color-success);
     }
 
     .status-value.disconnected {
-      color: #C84E00;
+      color: var(--color-danger);
     }
 
     /* Buttons */
@@ -173,12 +174,12 @@
     }
 
     button.primary {
-      background: linear-gradient(135deg, #00539B 0%, #012169 100%);
+      background: var(--gradient-primary);
       color: white;
     }
 
     button.primary:hover {
-      box-shadow: 0 4px 12px rgba(0, 83, 155, 0.3);
+      box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
     }
 
     button.secondary {
@@ -396,23 +397,46 @@
         <span class="chevron">▶</span>
       </button>
       <div class="setup-content" id="claudeConfigContent">
-        <ol>
-          <li>Install native host: <code>npm run install-host</code></li>
-          <li>Add to Claude Desktop config (<code>claude_desktop_config.json</code>):</li>
+        <div style="font-weight: 600; margin-bottom: 10px; color: #111827;">Installation:</div>
+
+        <ol style="margin: 0 0 16px 0; padding-left: 20px;">
+          <li style="margin-bottom: 6px;">Download the Canvas MCP native host package</li>
+          <li style="margin-bottom: 6px;">Open Claude Desktop → Extensions</li>
+          <li style="margin-bottom: 0;">Drag the .dxt file into the window</li>
         </ol>
-        <pre style="background: #1F2937; color: #F9FAFB; padding: 12px; border-radius: 6px; overflow-x: auto; margin: 8px 0;"><code>{
-  "mcpServers": {
-    "canvas": {
-      "command": "node",
-      "args": ["/path/to/native/host.js"]
-    }
-  }
-}</code></pre>
-        <ol start="3">
-          <li>Restart Claude Desktop</li>
-          <li>Load this extension in Chrome/Edge</li>
-          <li>Visit Canvas and click "Sync Canvas Data"</li>
-        </ol>
+
+        <div style="font-weight: 600; margin-bottom: 8px; color: #111827;">Get Your Extension ID:</div>
+        <ul style="margin: 0 0 16px 0; padding-left: 20px;">
+          <li style="margin-bottom: 4px;">Go to <code>chrome://extensions/</code></li>
+          <li style="margin-bottom: 4px;">Enable "Developer mode" (top right)</li>
+          <li style="margin-bottom: 0;">Copy the Canvas MCP Server extension ID</li>
+        </ul>
+
+        <div style="font-weight: 600; margin-bottom: 8px; color: #111827;">Configure Extension ID:</div>
+        <p style="margin: 0 0 8px 0; font-size: 11px; color: #6B7280;">
+          The MCP server needs your extension ID to communicate with Chrome.
+        </p>
+        <p style="margin: 0 0 16px 0;">
+          Run the installer from the native host package:
+        </p>
+        <ul style="margin: 0 0 16px 0; padding-left: 20px;">
+          <li style="margin-bottom: 4px;"><strong>macOS/Linux:</strong> <code>./install.sh</code></li>
+          <li style="margin-bottom: 4px;"><strong>Windows:</strong> <code>install.bat</code></li>
+          <li style="margin-bottom: 0;">Enter your extension ID when prompted</li>
+        </ul>
+
+        <div style="font-weight: 600; margin-bottom: 8px; color: #111827;">Test the Connection:</div>
+        <ul style="margin: 0; padding-left: 20px;">
+          <li style="margin-bottom: 4px;">Click "Sync Canvas Data" above</li>
+          <li style="margin-bottom: 4px;">Restart Chrome and Claude Desktop</li>
+          <li style="margin-bottom: 0;">Ask Claude: "What are my Canvas courses?"</li>
+        </ul>
+
+        <div style="margin-top: 14px; padding: 10px; background: #EFF6FF; border-left: 3px solid var(--color-primary, #1e3a5f); border-radius: 4px;">
+          <div style="font-size: 11px; color: #1E40AF;">
+            <strong>Note:</strong> Claude Desktop handles everything automatically with drag-and-drop installation!
+          </div>
+        </div>
       </div>
     </div>
   </div>

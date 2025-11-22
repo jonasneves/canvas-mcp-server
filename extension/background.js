@@ -26,7 +26,7 @@ const MCP_TOOLS = {
   },
   list_all_assignments: {
     name: "list_all_assignments",
-    description: "Get all assignments across all courses with submission status",
+    description: "Get all assignments across all courses with submission status - ideal for dashboard views",
     inputSchema: {
       type: "object",
       properties: {},
@@ -119,6 +119,15 @@ const MCP_TOOLS = {
       },
       required: ["course_id"]
     }
+  },
+  get_user_profile: {
+    name: "get_user_profile",
+    description: "Get the current user's profile information including name, email, avatar, bio, pronouns, and timezone",
+    inputSchema: {
+      type: "object",
+      properties: {},
+      required: []
+    }
   }
 };
 
@@ -132,11 +141,60 @@ let canvasData = {
   allAssignments: [],
   calendarEvents: [],
   upcomingEvents: [],
+  submissions: {},
+  modules: {},
+  analytics: {},
+  userProfile: null,
   lastUpdate: null
 };
 
+// Storage key for cached Canvas data
+const CANVAS_DATA_CACHE_KEY = 'cachedCanvasData';
+
 // Track MCP server connection status
 let mcpServerConnected = false;
+
+// Save Canvas data to persistent storage
+async function saveCanvasDataToStorage() {
+  try {
+    await chrome.storage.local.set({
+      [CANVAS_DATA_CACHE_KEY]: {
+        ...canvasData,
+        cacheTimestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('Failed to save Canvas data to storage:', error);
+  }
+}
+
+// Load Canvas data from persistent storage
+async function loadCanvasDataFromStorage() {
+  try {
+    const result = await chrome.storage.local.get([CANVAS_DATA_CACHE_KEY]);
+    if (result[CANVAS_DATA_CACHE_KEY]) {
+      const cached = result[CANVAS_DATA_CACHE_KEY];
+      // Restore all data from cache
+      canvasData = {
+        courses: cached.courses || [],
+        assignments: cached.assignments || {},
+        allAssignments: cached.allAssignments || [],
+        calendarEvents: cached.calendarEvents || [],
+        upcomingEvents: cached.upcomingEvents || [],
+        submissions: cached.submissions || {},
+        modules: cached.modules || {},
+        analytics: cached.analytics || {},
+        userProfile: cached.userProfile || null,
+        lastUpdate: cached.lastUpdate || null
+      };
+      console.log('Canvas data restored from cache, last updated:', canvasData.lastUpdate);
+      return true;
+    }
+  } catch (error) {
+    console.error('Failed to load Canvas data from storage:', error);
+  }
+  return false;
+}
 
 // Send Canvas data to MCP server via HTTP
 async function sendDataToMCPServer() {
@@ -151,20 +209,21 @@ async function sendDataToMCPServer() {
         assignments: canvasData.assignments,
         allAssignments: canvasData.allAssignments || [],
         calendarEvents: canvasData.calendarEvents || [],
-        upcomingEvents: canvasData.upcomingEvents || []
+        upcomingEvents: canvasData.upcomingEvents || [],
+        submissions: canvasData.submissions || {},
+        modules: canvasData.modules || {},
+        analytics: canvasData.analytics || {},
+        userProfile: canvasData.userProfile || null
       })
     });
 
     if (response.ok) {
       mcpServerConnected = true;
-      console.log('Successfully sent Canvas data to MCP server');
     } else {
       mcpServerConnected = false;
-      console.warn('MCP server responded with error:', response.status);
     }
   } catch (error) {
     mcpServerConnected = false;
-    console.log('MCP server not available (this is okay if not using Claude Desktop)');
   }
 }
 
@@ -186,10 +245,9 @@ async function checkMCPServerHealth() {
 async function getConfiguredCanvasUrl() {
   try {
     const result = await chrome.storage.local.get(['canvasUrl']);
-    return result.canvasUrl || 'https://canvas.instructure.com'; // Default fallback
+    return result.canvasUrl || 'https://canvas.university.edu'; // Default fallback
   } catch (error) {
-    console.error('Error getting Canvas URL from storage:', error);
-    return 'https://canvas.instructure.com';
+    return 'https://canvas.university.edu';
   }
 }
 
@@ -198,9 +256,9 @@ function isCanvasUrl(url) {
   if (!url) return false;
 
   const canvasPatterns = [
-    /^https?:\/\/[^\/]*instructure\.com/,
-    /^https?:\/\/[^\/]*canvaslms\.com/,
-    /^https?:\/\/canvas\.[^\/]+/,
+    // Match canvas.*.edu (e.g., canvas.university.edu)
+    /^https?:\/\/canvas\.[^\/]*\.edu/i,
+    // Match *.edu/canvas (e.g., university.edu/canvas)
     /^https?:\/\/[^\/]*\.edu\/.*canvas/i,
   ];
 
@@ -237,17 +295,24 @@ async function detectAndSaveCanvasUrl(url) {
     const trimmedUrls = detectedUrls.slice(0, 10);
 
     await chrome.storage.local.set({ detectedCanvasUrls: trimmedUrls });
-    console.log('Detected Canvas URL:', baseUrl);
   } catch (error) {
-    console.error('Error detecting Canvas URL:', error);
+    // Silent error handling
   }
 }
 
 // Helper function to get active Canvas tab
 async function getCanvasTab() {
-  return new Promise(async (resolve) => {
+  return new Promise(async (resolve, reject) => {
     // Get configured Canvas URL
-    const configuredUrl = await getConfiguredCanvasUrl();
+    const result = await chrome.storage.local.get(['canvasUrl']);
+    const configuredUrl = result.canvasUrl;
+
+    // If no URL is configured yet, don't create a tab with default value
+    if (!configuredUrl) {
+      reject(new Error('No Canvas URL configured'));
+      return;
+    }
+
     const configuredDomain = new URL(configuredUrl).hostname;
 
     // Build query patterns - include configured domain and common Canvas domains
@@ -294,13 +359,10 @@ function sendMessageToContent(tabId, message) {
 
 // Handle messages from content scripts and popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  console.log('Background received message:', request.type);
-  
   if (request.type === 'CANVAS_DATA') {
     if (request.data.courses) {
       canvasData.courses = request.data.courses;
       canvasData.lastUpdate = new Date().toISOString();
-      console.log('Stored courses:', canvasData.courses.length);
     }
     if (request.data.assignments) {
       if (request.data.courseId) {
@@ -309,20 +371,60 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         Object.assign(canvasData.assignments, request.data.assignments);
       }
     }
+    if (request.data.allAssignments) {
+      canvasData.allAssignments = request.data.allAssignments;
+      canvasData.lastUpdate = new Date().toISOString();
+    }
+    if (request.data.calendarEvents) {
+      canvasData.calendarEvents = request.data.calendarEvents;
+      canvasData.lastUpdate = new Date().toISOString();
+    }
+    if (request.data.upcomingEvents) {
+      canvasData.upcomingEvents = request.data.upcomingEvents;
+      canvasData.lastUpdate = new Date().toISOString();
+    }
+    if (request.data.submissions) {
+      if (request.data.courseId) {
+        canvasData.submissions[request.data.courseId] = request.data.submissions;
+      } else if (typeof request.data.submissions === 'object') {
+        Object.assign(canvasData.submissions, request.data.submissions);
+      }
+    }
+    if (request.data.modules) {
+      if (request.data.courseId) {
+        canvasData.modules[request.data.courseId] = request.data.modules;
+      } else if (typeof request.data.modules === 'object') {
+        Object.assign(canvasData.modules, request.data.modules);
+      }
+    }
+    if (request.data.analytics) {
+      if (request.data.courseId) {
+        canvasData.analytics[request.data.courseId] = request.data.analytics;
+      } else if (typeof request.data.analytics === 'object') {
+        Object.assign(canvasData.analytics, request.data.analytics);
+      }
+    }
+    if (request.data.userProfile) {
+      canvasData.userProfile = request.data.userProfile;
+      canvasData.lastUpdate = new Date().toISOString();
+    }
 
     // Send updated data to MCP server
     sendDataToMCPServer();
 
+    // Save to persistent storage
+    saveCanvasDataToStorage();
+
     sendResponse({ status: 'stored' });
   }
-  
+
   if (request.type === 'MCP_REQUEST') {
     handleMCPRequest(request.payload)
       .then(response => sendResponse(response))
       .catch(error => sendResponse({ error: error.message }));
     return true;
   }
-  
+
   if (request.type === 'GET_MCP_STATUS') {
     // Check MCP server health asynchronously
     checkMCPServerHealth().then(() => {
@@ -361,12 +463,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             coursesResponse,
             allAssignmentsResponse,
             calendarEventsResponse,
-            upcomingEventsResponse
+            upcomingEventsResponse,
+            userProfileResponse
           ] = await Promise.all([
             sendMessageToContent(tab.id, { type: 'FETCH_COURSES' }),
             sendMessageToContent(tab.id, { type: 'FETCH_ALL_ASSIGNMENTS' }),
             sendMessageToContent(tab.id, { type: 'FETCH_CALENDAR_EVENTS' }),
-            sendMessageToContent(tab.id, { type: 'FETCH_UPCOMING_EVENTS' })
+            sendMessageToContent(tab.id, { type: 'FETCH_UPCOMING_EVENTS' }),
+            sendMessageToContent(tab.id, { type: 'FETCH_USER_PROFILE' })
           ]);
 
           // Build comprehensive response
@@ -375,6 +479,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             allAssignments: allAssignmentsResponse?.success ? allAssignmentsResponse.data : [],
             calendarEvents: calendarEventsResponse?.success ? calendarEventsResponse.data : [],
             upcomingEvents: upcomingEventsResponse?.success ? upcomingEventsResponse.data : [],
+            userProfile: userProfileResponse?.success ? userProfileResponse.data : null,
             assignments: {} // Legacy format for backwards compatibility
           };
 
@@ -391,14 +496,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           if (data.upcomingEvents.length > 0) {
             canvasData.upcomingEvents = data.upcomingEvents;
           }
+          if (data.userProfile) {
+            canvasData.userProfile = data.userProfile;
+          }
           canvasData.lastUpdate = new Date().toISOString();
 
           // Send to MCP server
           sendDataToMCPServer();
 
+          // Save to persistent storage
+          saveCanvasDataToStorage();
+
           sendResponse({ success: true, data: data });
         } catch (error) {
-          console.error('Error refreshing data:', error);
           sendResponse({ success: false, error: error.message });
         }
       })
@@ -412,9 +522,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 async function handleMCPRequest(payload) {
   const { method, params } = payload;
-  
-  console.log('Handling MCP request:', method, params);
-  
+
+
   switch(method) {
     case 'initialize':
       return {
@@ -427,15 +536,15 @@ async function handleMCPRequest(payload) {
           tools: {}
         }
       };
-      
+
     case 'tools/list':
       return {
         tools: Object.values(MCP_TOOLS)
       };
-      
+
     case 'tools/call':
       return await handleToolCall(params);
-      
+
     default:
       throw new Error(`Unknown method: ${method}`);
   }
@@ -460,7 +569,6 @@ async function handleToolCall(params) {
             canvasData.lastUpdate = new Date().toISOString();
           }
         } catch (error) {
-          console.error('Error fetching courses:', error);
         }
       }
 
@@ -496,7 +604,6 @@ async function handleToolCall(params) {
             canvasData.assignments[courseId] = assignments;
           }
         } catch (error) {
-          console.error('Error fetching assignments:', error);
         }
       }
 
@@ -534,7 +641,6 @@ async function handleToolCall(params) {
           }]
         };
       } catch (error) {
-        console.error('Error fetching all assignments:', error);
         return {
           content: [{
             type: "text",
@@ -568,7 +674,6 @@ async function handleToolCall(params) {
           throw new Error(response?.error || 'Failed to fetch assignment details');
         }
       } catch (error) {
-        console.error('Error fetching assignment details:', error);
         return {
           content: [{
             type: "text",
@@ -607,7 +712,6 @@ async function handleToolCall(params) {
           }]
         };
       } catch (error) {
-        console.error('Error fetching calendar events:', error);
         return {
           content: [{
             type: "text",
@@ -642,7 +746,6 @@ async function handleToolCall(params) {
           }]
         };
       } catch (error) {
-        console.error('Error fetching user submissions:', error);
         return {
           content: [{
             type: "text",
@@ -677,7 +780,6 @@ async function handleToolCall(params) {
           }]
         };
       } catch (error) {
-        console.error('Error fetching course modules:', error);
         return {
           content: [{
             type: "text",
@@ -708,7 +810,6 @@ async function handleToolCall(params) {
           }]
         };
       } catch (error) {
-        console.error('Error fetching upcoming events:', error);
         return {
           content: [{
             type: "text",
@@ -749,7 +850,6 @@ async function handleToolCall(params) {
           };
         }
       } catch (error) {
-        console.error('Error fetching course analytics:', error);
         return {
           content: [{
             type: "text",
@@ -757,6 +857,42 @@ async function handleToolCall(params) {
               error: error.message,
               note: 'Analytics may not be available on all Canvas instances'
             }, null, 2)
+          }]
+        };
+      }
+
+    case 'get_user_profile':
+      try {
+        const tab = await getCanvasTab();
+        await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          files: ['content.js']
+        });
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const response = await sendMessageToContent(tab.id, { type: 'FETCH_USER_PROFILE' });
+
+        if (response?.success && response.data) {
+          return {
+            content: [{
+              type: "text",
+              text: JSON.stringify(response.data, null, 2)
+            }]
+          };
+        } else {
+          return {
+            content: [{
+              type: "text",
+              text: JSON.stringify({
+                error: 'Failed to fetch user profile'
+              }, null, 2)
+            }]
+          };
+        }
+      } catch (error) {
+        return {
+          content: [{
+            type: "text",
+            text: JSON.stringify({ error: error.message }, null, 2)
           }]
         };
       }
@@ -771,12 +907,10 @@ if (chrome.alarms) {
   try {
     chrome.alarms.create('keepAlive', { periodInMinutes: 1 });
     chrome.alarms.onAlarm.addListener((alarm) => {
-      if (alarm.name === 'keepAlive') {
-        console.log('Service worker keepalive ping');
-      }
+      // Keep alive ping
     });
   } catch (error) {
-    console.warn('Failed to set up alarms:', error);
+    // Silent error handling
   }
 }
 
@@ -795,21 +929,101 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
       detectAndSaveCanvasUrl(tab.url);
     }
   } catch (error) {
-    console.error('Error detecting Canvas URL on tab activation:', error);
+    // Silent error handling
   }
 });
 
-// Check MCP server connection on startup
-checkMCPServerHealth().then(connected => {
-  if (connected) {
-    console.log('MCP server is available');
-    // Send any existing Canvas data
-    if (canvasData.courses.length > 0) {
+// Load cached Canvas data on startup, then check MCP server
+loadCanvasDataFromStorage().then(hasCache => {
+  checkMCPServerHealth().then(connected => {
+    if (connected && canvasData.courses.length > 0) {
+      // Send any existing Canvas data
       sendDataToMCPServer();
     }
-  } else {
-    console.log('MCP server not available (extension will work standalone)');
+  });
+});
+
+// Listen for Canvas URL changes and auto-refresh data
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace === 'local' && changes.canvasUrl) {
+    const oldUrl = changes.canvasUrl.oldValue;
+    const newUrl = changes.canvasUrl.newValue;
+
+    if (oldUrl !== newUrl && newUrl) {
+      console.log(`Canvas URL changed from ${oldUrl} to ${newUrl} - refreshing data...`);
+
+      // Clear existing data since we're switching Canvas instances
+      canvasData = {
+        courses: [],
+        assignments: {},
+        allAssignments: [],
+        calendarEvents: [],
+        upcomingEvents: [],
+        submissions: {},
+        modules: {},
+        analytics: {},
+        userProfile: null,
+        lastUpdate: null
+      };
+
+      // Trigger automatic data refresh
+      getCanvasTab()
+        .then(async (tab) => {
+          try {
+            await chrome.scripting.executeScript({
+              target: { tabId: tab.id },
+              files: ['content.js']
+            });
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Fetch all data types in parallel
+            const [
+              coursesResponse,
+              allAssignmentsResponse,
+              calendarEventsResponse,
+              upcomingEventsResponse,
+              userProfileResponse
+            ] = await Promise.all([
+              sendMessageToContent(tab.id, { type: 'FETCH_COURSES' }),
+              sendMessageToContent(tab.id, { type: 'FETCH_ALL_ASSIGNMENTS' }),
+              sendMessageToContent(tab.id, { type: 'FETCH_CALENDAR_EVENTS' }),
+              sendMessageToContent(tab.id, { type: 'FETCH_UPCOMING_EVENTS' }),
+              sendMessageToContent(tab.id, { type: 'FETCH_USER_PROFILE' })
+            ]);
+
+            // Update in-memory cache
+            if (coursesResponse?.success && coursesResponse.data.length > 0) {
+              canvasData.courses = coursesResponse.data;
+            }
+            if (allAssignmentsResponse?.success && allAssignmentsResponse.data.length > 0) {
+              canvasData.allAssignments = allAssignmentsResponse.data;
+            }
+            if (calendarEventsResponse?.success && calendarEventsResponse.data.length > 0) {
+              canvasData.calendarEvents = calendarEventsResponse.data;
+            }
+            if (upcomingEventsResponse?.success && upcomingEventsResponse.data.length > 0) {
+              canvasData.upcomingEvents = upcomingEventsResponse.data;
+            }
+            if (userProfileResponse?.success && userProfileResponse.data) {
+              canvasData.userProfile = userProfileResponse.data;
+            }
+            canvasData.lastUpdate = new Date().toISOString();
+
+            // Send to MCP server
+            sendDataToMCPServer();
+
+            // Save to persistent storage
+            saveCanvasDataToStorage();
+
+            console.log(`Data refreshed successfully from new Canvas instance: ${newUrl}`);
+          } catch (error) {
+            console.error(`Failed to refresh data after Canvas URL change: ${error.message}`);
+          }
+        })
+        .catch(error => {
+          console.error(`Failed to get Canvas tab for auto-refresh: ${error.message}`);
+        });
+    }
   }
 });
 
-console.log('Canvas MCP Server initialized');
