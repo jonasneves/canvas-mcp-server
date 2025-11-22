@@ -400,7 +400,7 @@
         <div style="font-weight: 600; margin-bottom: 10px; color: #111827;">Installation:</div>
 
         <ol style="margin: 0 0 16px 0; padding-left: 20px;">
-          <li style="margin-bottom: 6px;">Download the Canvas MCP native host package</li>
+          <li style="margin-bottom: 6px;">Download: <a href="https://github.com/jonasneves/canvas-mcp-server/releases/download/nightly/canvas-mcp-server-native-host.dxt" target="_blank" style="color: var(--color-primary, #1e3a5f); text-decoration: none; font-weight: 600;">canvas-mcp-server-native-host.dxt</a></li>
           <li style="margin-bottom: 6px;">Open Claude Desktop → Extensions</li>
           <li style="margin-bottom: 0;">Drag the .dxt file into the window</li>
         </ol>
@@ -412,16 +412,13 @@
           <li style="margin-bottom: 0;">Copy the Canvas MCP Server extension ID</li>
         </ul>
 
-        <div style="font-weight: 600; margin-bottom: 8px; color: #111827;">Configure Extension ID:</div>
+        <div style="font-weight: 600; margin-bottom: 8px; color: #111827;">Optional: Chrome Native Messaging Setup</div>
         <p style="margin: 0 0 8px 0; font-size: 11px; color: #6B7280;">
-          The MCP server needs your extension ID to communicate with Chrome.
-        </p>
-        <p style="margin: 0 0 16px 0;">
-          Run the installer from the native host package:
+          For native messaging integration (not needed for Claude Desktop MCP usage):
         </p>
         <ul style="margin: 0 0 16px 0; padding-left: 20px;">
-          <li style="margin-bottom: 4px;"><strong>macOS/Linux:</strong> <code>./install.sh</code></li>
-          <li style="margin-bottom: 4px;"><strong>Windows:</strong> <code>install.bat</code></li>
+          <li style="margin-bottom: 4px;">Download: <a href="https://github.com/jonasneves/canvas-mcp-server/releases/download/nightly/canvas-mcp-server-chrome-extension.zip" target="_blank" style="color: var(--color-primary, #1e3a5f); text-decoration: none;">chrome-extension.zip</a></li>
+          <li style="margin-bottom: 4px;">Extract and run <code>install.sh</code> (macOS/Linux) or <code>install.bat</code> (Windows)</li>
           <li style="margin-bottom: 0;">Enter your extension ID when prompted</li>
         </ul>
 
