@@ -14,16 +14,15 @@ Connect Claude Desktop to your Canvas LMS data through a Chrome extension and na
 
 ### Option 1: Simple Installation (Recommended)
 
-**Download the latest release:** [Releases](https://github.com/jonasneves/canvas-mcp-server/releases/latest)
-
 1. **Install Claude Desktop integration:**
-   - Download `canvas-mcp-server-native-host.dxt`
+   - Download: [`canvas-mcp-server-native-host.dxt`](https://github.com/jonasneves/canvas-mcp-server/releases/latest/download/canvas-mcp-server-native-host.dxt)
    - Open Claude Desktop → Extensions
    - Drag the `.dxt` file into the extensions area
    - Done!
 
 2. **Install Chrome Extension:**
-   - Download and extract `canvasflow-extension-v*.zip`
+   - Download: [Latest Extension Release](https://github.com/jonasneves/canvas-mcp-server/releases/latest)
+   - Extract `canvasflow-extension-v*.zip`
    - Open Chrome → `chrome://extensions/`
    - Enable "Developer mode"
    - Click "Load unpacked" → select extracted folder
