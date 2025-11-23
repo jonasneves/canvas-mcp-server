@@ -2,6 +2,27 @@
 
 Connect Claude Desktop to your Canvas LMS data through a Chrome extension and native messaging host.
 
+## Architecture
+
+![Architecture](architecture.png)
+
+The extension runs in your browser, fetches data via Canvas API, and forwards it to the native host which communicates with Claude Desktop using the MCP protocol.
+
+## Project Structure
+
+```
+canvas-mcp-server/
+├── extension/          # Chrome extension
+│   ├── manifest.json
+│   ├── background.js   # Service worker
+│   ├── content.js      # Canvas API integration
+│   └── popup.*         # Extension UI
+└── native-host/        # MCP server
+    ├── host.js         # Main server
+    ├── install.sh      # Unix installer
+    └── install.bat     # Windows installer
+```
+
 ## Features
 
 - Access courses, assignments, and submissions
@@ -68,27 +89,6 @@ npm install
 - `list_course_modules` - Get course modules and items
 - `list_upcoming_events` - Get upcoming assignments and events
 - `get_course_analytics` - Get course analytics (if enabled)
-
-## Architecture
-
-![Architecture](architecture.png)
-
-The extension runs in your browser, fetches data via Canvas API, and forwards it to the native host which communicates with Claude Desktop using the MCP protocol.
-
-## Project Structure
-
-```
-canvas-mcp-server/
-├── extension/          # Chrome extension
-│   ├── manifest.json
-│   ├── background.js   # Service worker
-│   ├── content.js      # Canvas API integration
-│   └── popup.*         # Extension UI
-└── native-host/        # MCP server
-    ├── host.js         # Main server
-    ├── install.sh      # Unix installer
-    └── install.bat     # Windows installer
-```
 
 ## Troubleshooting
 
