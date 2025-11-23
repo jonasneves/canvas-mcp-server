@@ -71,10 +71,7 @@ npm install
 
 ## Architecture
 
-```
-Canvas LMS → Chrome Extension → Native Host → Claude Desktop
-           (Canvas API)      (HTTP/localhost)  (MCP/STDIO)
-```
+![Architecture](architecture.png)
 
 The extension runs in your browser, fetches data via Canvas API, and forwards it to the native host which communicates with Claude Desktop using the MCP protocol.
 
