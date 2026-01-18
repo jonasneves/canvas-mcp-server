@@ -1,5 +1,3 @@
-// Canvas MCP Server - Background Service Worker with Native Messaging
-
 const MCP_TOOLS = {
   list_courses: {
     name: "list_courses",
