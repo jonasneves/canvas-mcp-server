@@ -1,10 +1,10 @@
 #!/bin/bash
-# CanvasFlow Native Host Installation Script
+# Canvas MCP Server Native Host Installation Script
 # Supports macOS and Linux
 
 set -e
 
-echo "CanvasFlow Native Host Installer"
+echo "Canvas MCP Server Native Host Installer"
 echo "================================="
 echo ""
 
@@ -20,7 +20,7 @@ echo "Detected platform: ${PLATFORM}"
 echo ""
 
 # Get installation directory
-INSTALL_DIR="${HOME}/.canvasflow/native-host"
+INSTALL_DIR="${HOME}/.canvas-mcp-server/native-host"
 echo "Installation directory: ${INSTALL_DIR}"
 
 # Check if Node.js is installed
@@ -60,10 +60,10 @@ if [ "${PLATFORM}" = "macos" ]; then
     mkdir -p "${NATIVE_MANIFEST_DIR}"
 
     # Create manifest with absolute path
-    cat > "${NATIVE_MANIFEST_DIR}/com.canvasflow.host.json" <<EOF
+    cat > "${NATIVE_MANIFEST_DIR}/com.canvas_mcp_server.host.json" <<EOF
 {
-  "name": "com.canvasflow.host",
-  "description": "CanvasFlow Native Messaging Host",
+  "name": "com.canvas_mcp_server.host",
+  "description": "Canvas MCP Server Native Messaging Host",
   "path": "${INSTALL_DIR}/host.js",
   "type": "stdio",
   "allowed_origins": [
@@ -72,16 +72,16 @@ if [ "${PLATFORM}" = "macos" ]; then
 }
 EOF
 
-    echo "Installed to: ${NATIVE_MANIFEST_DIR}/com.canvasflow.host.json"
+    echo "Installed to: ${NATIVE_MANIFEST_DIR}/com.canvas_mcp_server.host.json"
 elif [ "${PLATFORM}" = "linux" ]; then
     NATIVE_MANIFEST_DIR="${HOME}/.config/google-chrome/NativeMessagingHosts"
     mkdir -p "${NATIVE_MANIFEST_DIR}"
 
     # Create manifest with absolute path
-    cat > "${NATIVE_MANIFEST_DIR}/com.canvasflow.host.json" <<EOF
+    cat > "${NATIVE_MANIFEST_DIR}/com.canvas_mcp_server.host.json" <<EOF
 {
-  "name": "com.canvasflow.host",
-  "description": "CanvasFlow Native Messaging Host",
+  "name": "com.canvas_mcp_server.host",
+  "description": "Canvas MCP Server Native Messaging Host",
   "path": "${INSTALL_DIR}/host.js",
   "type": "stdio",
   "allowed_origins": [
@@ -90,7 +90,7 @@ elif [ "${PLATFORM}" = "linux" ]; then
 }
 EOF
 
-    echo "Installed to: ${NATIVE_MANIFEST_DIR}/com.canvasflow.host.json"
+    echo "Installed to: ${NATIVE_MANIFEST_DIR}/com.canvas_mcp_server.host.json"
 fi
 
 echo ""
@@ -100,23 +100,23 @@ echo "================================="
 echo "CHROME EXTENSION ID CONFIGURATION"
 echo "================================="
 echo ""
-echo "To complete setup, you need your CanvasFlow extension ID:"
+echo "To complete setup, you need your Canvas MCP Server extension ID:"
 echo ""
 echo "  1. Open Chrome and go to: chrome://extensions/"
 echo "  2. Enable 'Developer mode' (top right)"
-echo "  3. Find 'CanvasFlow' in the list"
+echo "  3. Find 'Canvas MCP Server' in the list"
 echo "  4. Copy the ID (looks like: abcdefghijklmnopqrstuvwxyz123456)"
 echo ""
 
 # Prompt for extension ID
-read -p "Enter your CanvasFlow extension ID (or press Enter to skip): " EXTENSION_ID
+read -p "Enter your Canvas MCP Server extension ID (or press Enter to skip): " EXTENSION_ID
 
 if [ -n "${EXTENSION_ID}" ]; then
     # Update the manifest file with the actual extension ID
     if [ "${PLATFORM}" = "macos" ]; then
-        MANIFEST_PATH="${HOME}/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.canvasflow.host.json"
+        MANIFEST_PATH="${HOME}/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.canvas_mcp_server.host.json"
     else
-        MANIFEST_PATH="${HOME}/.config/google-chrome/NativeMessagingHosts/com.canvasflow.host.json"
+        MANIFEST_PATH="${HOME}/.config/google-chrome/NativeMessagingHosts/com.canvas_mcp_server.host.json"
     fi
 
     # Replace EXTENSION_ID placeholder with actual ID
@@ -132,9 +132,9 @@ else
     echo ""
     echo "To configure later, edit this file:"
     if [ "${PLATFORM}" = "macos" ]; then
-        echo "  ${HOME}/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.canvasflow.host.json"
+        echo "  ${HOME}/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.canvas_mcp_server.host.json"
     else
-        echo "  ${HOME}/.config/google-chrome/NativeMessagingHosts/com.canvasflow.host.json"
+        echo "  ${HOME}/.config/google-chrome/NativeMessagingHosts/com.canvas_mcp_server.host.json"
     fi
     echo ""
     echo "Replace 'EXTENSION_ID' with your actual extension ID."
@@ -152,7 +152,7 @@ echo ""
 echo "Add this entry:"
 echo ""
 echo '{'
-echo '  "canvasflow": {'
+echo '  "canvas-mcp-server": {'
 echo '    "command": "node",'
 echo "    \"args\": [\"${INSTALL_DIR}/host.js\"]"
 echo '  }'
@@ -162,6 +162,6 @@ echo "Then restart Claude Desktop and ask: 'What are my Canvas courses?'"
 echo ""
 echo "Final steps:"
 echo "1. Restart Chrome"
-echo "2. Click 'Refresh Canvas Data' in the CanvasFlow extension"
+echo "2. Click 'Refresh Canvas Data' in the Canvas MCP Server extension"
 echo "3. Restart Claude Desktop (if using MCP)"
 echo ""

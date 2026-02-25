@@ -1,10 +1,10 @@
-# CanvasFlow Native Host
+# Canvas MCP Server Native Host
 
-Native messaging host for CanvasFlow that enables MCP (Model Context Protocol) integration with Claude Desktop.
+Native messaging host for Canvas MCP Server that enables MCP (Model Context Protocol) integration with Claude Desktop.
 
 ## Overview
 
-This optional component allows Claude Desktop to access your Canvas assignment data through the CanvasFlow Chrome extension. When installed, you can ask Claude about your courses, assignments, and deadlines directly from Claude Desktop.
+This optional component allows Claude Desktop to access your Canvas assignment data through the Canvas MCP Server Chrome extension. When installed, you can ask Claude about your courses, assignments, and deadlines directly from Claude Desktop.
 
 ## Features
 
@@ -27,7 +27,7 @@ Claude Desktop <-> Native Host <-> Chrome Extension <-> Canvas LMS
 ### Prerequisites
 
 - Node.js 14 or higher
-- CanvasFlow Chrome extension installed
+- Canvas MCP Server Chrome extension installed
 - Claude Desktop application (optional, for MCP integration)
 
 ### Quick Install
@@ -36,25 +36,25 @@ Claude Desktop <-> Native Host <-> Chrome Extension <-> Canvas LMS
 
 **Direct download:**
 ```
-https://github.com/jonasneves/canvasflow/releases/download/latest/canvasflow-native-host.zip
+https://github.com/jonasneves/canvas-mcp-server/releases/latest
 ```
 
-Or visit [GitHub Releases](https://github.com/jonasneves/canvasflow/releases) to browse all versions.
+Or visit [GitHub Releases](https://github.com/jonasneves/canvas-mcp-server/releases) to browse all versions.
 
 **Automated Installation:**
 
 **macOS/Linux:**
 ```bash
-unzip canvasflow-native-host.zip
-cd canvasflow-native-host
+unzip canvas-mcp-server-native-host.zip
+cd canvas-mcp-server-native-host
 chmod +x install.sh
 ./install.sh
 ```
 
 **Windows:**
 ```cmd
-# Extract canvasflow-native-host.zip
-cd canvasflow-native-host
+# Extract canvas-mcp-server-native-host.zip
+cd canvas-mcp-server-native-host
 install.bat
 ```
 
@@ -70,7 +70,7 @@ The install script will:
 
 2. Install dependencies:
    ```bash
-   cd canvasflow-native-host
+   cd canvas-mcp-server-native-host
    npm install --production
    ```
 
@@ -79,26 +79,26 @@ The install script will:
    **Windows:**
    ```cmd
    # Run as Administrator or use install.bat
-   reg add "HKCU\Software\Google\Chrome\NativeMessagingHosts\com.canvasflow.host" /ve /t REG_SZ /d "%CD%\manifest.json" /f
+   reg add "HKCU\Software\Google\Chrome\NativeMessagingHosts\com.canvas_mcp_server.host" /ve /t REG_SZ /d "%CD%\manifest.json" /f
    ```
 
    **macOS:**
    ```bash
    mkdir -p ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts
-   cp manifest.json ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/com.canvasflow.host.json
+   cp manifest.json ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/com.canvas_mcp_server.host.json
    # Update paths in manifest to absolute paths
    ```
 
    **Linux:**
    ```bash
    mkdir -p ~/.config/google-chrome/NativeMessagingHosts
-   cp manifest.json ~/.config/google-chrome/NativeMessagingHosts/com.canvasflow.host.json
+   cp manifest.json ~/.config/google-chrome/NativeMessagingHosts/com.canvas_mcp_server.host.json
    # Update paths in manifest to absolute paths
    ```
 
 4. Update the manifest with your extension ID:
    - Open Chrome and go to `chrome://extensions/`
-   - Enable "Developer mode" and note the CanvasFlow extension ID
+   - Enable "Developer mode" and note the Canvas MCP Server extension ID
    - Edit the installed manifest file and replace `EXTENSION_ID` with your actual ID
 
 5. Restart Chrome
@@ -106,7 +106,7 @@ The install script will:
 ### Verify Installation
 
 1. Open Chrome DevTools console
-2. Run: `chrome.runtime.connectNative('com.canvasflow.host')`
+2. Run: `chrome.runtime.connectNative('com.canvas_mcp_server.host')`
 3. If successful, the connection will be established without errors
 
 ## File Structure
@@ -126,7 +126,7 @@ native-host/
 Defines the native messaging host configuration:
 - Host name: `canvas-mcp-server`
 - Entry point: `host.js`
-- Allowed origins: CanvasFlow extension ID
+- Allowed origins: Canvas MCP Server extension ID
 
 ### MCP Server
 
@@ -172,7 +172,7 @@ echo '{"action":"ping"}' | node host.js
 
 ## Security
 
-- Host only accepts connections from the CanvasFlow extension
+- Host only accepts connections from the Canvas MCP Server extension
 - All communication is local (no network exposure)
 - Canvas data is never stored by the native host
 - MCP server runs in isolated process

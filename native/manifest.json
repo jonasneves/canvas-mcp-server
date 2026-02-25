@@ -1,17 +1,17 @@
 {
   "dxt_version": "0.1",
   "name": "canvas-mcp-server",
-  "display_name": "Canvas LMS MCP Server",
+  "display_name": "Canvas MCP Server",
   "version": "1.0.0",
-  "description": "Access Canvas LMS courses, assignments, and grades directly in Claude",
-  "long_description": "This extension enables Claude to access your Canvas LMS data through the Canvas MCP Chrome extension. View courses, assignments, grades, and more without leaving Claude.\n\n**Features:**\n- List all your Canvas courses\n- View assignments and due dates\n- Check grades and submissions\n- Get course information\n\n**Setup:**\n1. Install the Canvas MCP Chrome extension\n2. Install this MCP server in Claude Desktop\n3. Click 'Refresh Canvas Data' in the Chrome extension\n4. Ask Claude about your courses!",
+  "description": "Connect Claude Desktop to your Canvas LMS data through the Canvas MCP Chrome extension",
+  "long_description": "Access your Canvas LMS courses, assignments, and grades directly from Claude Desktop. This MCP server connects Claude to the Canvas MCP Chrome extension, enabling natural conversations about your coursework.\n\nFeatures: List courses, view assignments and due dates, check grades and submissions, get course information, view user profile.\n\nSetup: (1) Install the Canvas MCP Chrome extension, (2) Install this MCP server in Claude Desktop, (3) Click 'Refresh Canvas Data' in the extension, (4) Ask Claude about your courses!\n\nRequires: Canvas MCP Chrome extension installed and configured.",
   "author": {
-    "name": "Canvas MCP",
-    "url": "https://github.com/jonasneves/studyboard"
+    "name": "Jonas Neves",
+    "url": "https://github.com/jonasneves/canvas-mcp-server"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jonasneves/studyboard"
+    "url": "https://github.com/jonasneves/canvas-mcp-server"
   },
   "server": {
     "type": "node",

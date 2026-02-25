@@ -43,7 +43,7 @@ canvas-mcp-server/
 
 2. **Install Chrome Extension:**
    - Download: [Latest Extension Release](https://github.com/jonasneves/canvas-mcp-server/releases/latest)
-   - Extract `canvasflow-extension-v*.zip`
+   - Extract `canvas-mcp-server-extension-v*.zip`
    - Open Chrome → `chrome://extensions/`
    - Enable "Developer mode"
    - Click "Load unpacked" → select extracted folder

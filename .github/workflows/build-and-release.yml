@@ -65,39 +65,35 @@ jobs:
       - name: Create Chrome Web Store package
         run: |
           cd extension
-          zip -r ../canvasflow-extension-v${{ steps.version.outputs.version }}.zip \
+          zip -r ../canvas-mcp-server-extension-v${{ steps.version.outputs.version }}.zip \
             manifest.json \
             background.js \
             content.js \
-            sidepanel.html \
-            sidepanel.js \
-            schedule.html \
-            schedule.js \
-            schedule.css \
+            popup.html \
+            popup.js \
+            colors.css \
             icon-16.png \
             icon-48.png \
             icon-128.png \
-            lib/ \
-            types/ \
             -x "*.md" "*.DS_Store" "*node_modules*"
           cd ..
 
-          echo "Package created: canvasflow-extension-v${{ steps.version.outputs.version }}.zip"
-          ls -lh canvasflow-extension-v${{ steps.version.outputs.version }}.zip
+          echo "Package created: canvas-mcp-server-extension-v${{ steps.version.outputs.version }}.zip"
+          ls -lh canvas-mcp-server-extension-v${{ steps.version.outputs.version }}.zip
 
       - name: Verify ZIP contents
         run: |
-          unzip -l canvasflow-extension-v${{ steps.version.outputs.version }}.zip
+          unzip -l canvas-mcp-server-extension-v${{ steps.version.outputs.version }}.zip
 
           # Check file count
-          FILE_COUNT=$(unzip -l canvasflow-extension-v${{ steps.version.outputs.version }}.zip | grep -c "^-")
+          FILE_COUNT=$(unzip -l canvas-mcp-server-extension-v${{ steps.version.outputs.version }}.zip | grep -c "^-")
           echo "Total files in package: $FILE_COUNT"
 
       - name: Upload extension artifact
         uses: actions/upload-artifact@v4
         with:
           name: extension-build
-          path: canvasflow-extension-v${{ steps.version.outputs.version }}.zip
+          path: canvas-mcp-server-extension-v${{ steps.version.outputs.version }}.zip
           retention-days: 90
 
   # Job 2: Build Native Host (runs in parallel with extension build)
@@ -139,6 +135,7 @@ jobs:
           # Create ZIP package (for Chrome extension native messaging setup)
           zip -r ../dist/canvas-mcp-server-chrome-extension.zip \
             host.js \
+            config.js \
             manifest.json \
             package.json \
             package-lock.json \
@@ -149,13 +146,15 @@ jobs:
           # Create DXT package (for Claude Desktop drag-and-drop)
           zip -r ../dist/canvas-mcp-server-native-host.dxt \
             host.js \
+            config.js \
             manifest.json \
             package.json \
             package-lock.json
 
           # Also create versioned native host package
-          zip -r ../dist/canvasflow-native-host-v${{ steps.version.outputs.version }}.zip \
+          zip -r ../dist/canvas-mcp-server-native-host-v${{ steps.version.outputs.version }}.zip \
             host.js \
+            config.js \
             package.json \
             package-lock.json \
             manifest.json \
@@ -203,7 +202,7 @@ jobs:
         run: |
           VERSION="${{ needs.build-extension.outputs.version }}"
           cat > release-notes.md << EOF
-          ## CanvasFlow v${VERSION}
+          ## Canvas MCP Server v${VERSION}
 
           ### Chrome Extension
 
@@ -214,14 +213,14 @@ jobs:
           - MCP server integration for Claude Desktop
 
           **Installation:**
-          1. Download \`canvasflow-extension-v${VERSION}.zip\`
+          1. Download \`canvas-mcp-server-extension-v${VERSION}.zip\`
           2. Extract the ZIP file
           3. Open Chrome and go to \`chrome://extensions/\`
           4. Enable "Developer mode"
           5. Click "Load unpacked" and select the extracted folder
 
           **For Chrome Web Store submission:**
-          Use \`canvasflow-extension-v${VERSION}.zip\` directly
+          Use \`canvas-mcp-server-extension-v${VERSION}.zip\` directly
 
           ### Native Host (For MCP Integration)
 
@@ -248,7 +247,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('v{0}', needs.build-extension.outputs.version) }}
-          name: ${{ startsWith(github.ref, 'refs/tags/') && format('CanvasFlow {0}', github.ref_name) || format('CanvasFlow v{0}', needs.build-extension.outputs.version) }}
+          name: ${{ startsWith(github.ref, 'refs/tags/') && format('Canvas MCP Server {0}', github.ref_name) || format('Canvas MCP Server v{0}', needs.build-extension.outputs.version) }}
           files: release-files/*
           body_path: release-notes.md
           draft: false
@@ -282,7 +281,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
 
           echo "### Packages Created:" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Chrome Extension: \`canvasflow-extension-v${VERSION}.zip\`" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Chrome Extension: \`canvas-mcp-server-extension-v${VERSION}.zip\`" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Native Host (Chrome): \`canvas-mcp-server-chrome-extension.zip\`" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Native Host (Claude): \`canvas-mcp-server-native-host.dxt\`" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Native Host (Versioned): \`canvasflow-native-host-v${VERSION}.zip\`" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Native Host (Versioned): \`canvas-mcp-server-native-host-v${VERSION}.zip\`" >> $GITHUB_STEP_SUMMARY

@@ -126,6 +126,99 @@ const MCP_TOOLS = {
       properties: {},
       required: []
     }
+  },
+  get_course_grades: {
+    name: "get_course_grades",
+    description: "Get current and final grades for a course. Omit course_id to get grades for all active courses.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        course_id: { type: "string", description: "The Canvas course ID (optional)" }
+      },
+      required: []
+    }
+  },
+  get_assignment_groups: {
+    name: "get_assignment_groups",
+    description: "Get assignment groups with grade weights for a course (e.g. Homework 20%, Exams 50%)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        course_id: { type: "string", description: "The Canvas course ID" }
+      },
+      required: ["course_id"]
+    }
+  },
+  get_course_announcements: {
+    name: "get_course_announcements",
+    description: "Get recent announcements posted by instructors in a course",
+    inputSchema: {
+      type: "object",
+      properties: {
+        course_id: { type: "string", description: "The Canvas course ID" }
+      },
+      required: ["course_id"]
+    }
+  },
+  get_missing_submissions: {
+    name: "get_missing_submissions",
+    description: "Get all missing/unsubmitted assignments across all courses",
+    inputSchema: {
+      type: "object",
+      properties: {},
+      required: []
+    }
+  },
+  get_todo_items: {
+    name: "get_todo_items",
+    description: "Get the user's Canvas to-do list (unsubmitted assignments, unread items)",
+    inputSchema: {
+      type: "object",
+      properties: {},
+      required: []
+    }
+  },
+  get_planner_items: {
+    name: "get_planner_items",
+    description: "Get upcoming planner items including assignments, quizzes, and student-created to-dos",
+    inputSchema: {
+      type: "object",
+      properties: {},
+      required: []
+    }
+  },
+  get_course_discussions: {
+    name: "get_course_discussions",
+    description: "Get discussion topics for a course",
+    inputSchema: {
+      type: "object",
+      properties: {
+        course_id: { type: "string", description: "The Canvas course ID" }
+      },
+      required: ["course_id"]
+    }
+  },
+  get_course_pages: {
+    name: "get_course_pages",
+    description: "Get pages (wiki/syllabus) for a course",
+    inputSchema: {
+      type: "object",
+      properties: {
+        course_id: { type: "string", description: "The Canvas course ID" }
+      },
+      required: ["course_id"]
+    }
+  },
+  get_course_files: {
+    name: "get_course_files",
+    description: "Get files uploaded to a course",
+    inputSchema: {
+      type: "object",
+      properties: {
+        course_id: { type: "string", description: "The Canvas course ID" }
+      },
+      required: ["course_id"]
+    }
   }
 };
 
@@ -143,6 +236,15 @@ let canvasData = {
   modules: {},
   analytics: {},
   userProfile: null,
+  grades: {},
+  assignmentGroups: {},
+  announcements: {},
+  missingSubmissions: [],
+  todoItems: [],
+  plannerItems: [],
+  discussions: {},
+  pages: {},
+  files: {},
   lastUpdate: null
 };
 
@@ -183,6 +285,15 @@ async function loadCanvasDataFromStorage() {
         modules: cached.modules || {},
         analytics: cached.analytics || {},
         userProfile: cached.userProfile || null,
+        grades: cached.grades || {},
+        assignmentGroups: cached.assignmentGroups || {},
+        announcements: cached.announcements || {},
+        missingSubmissions: cached.missingSubmissions || [],
+        todoItems: cached.todoItems || [],
+        plannerItems: cached.plannerItems || [],
+        discussions: cached.discussions || {},
+        pages: cached.pages || {},
+        files: cached.files || {},
         lastUpdate: cached.lastUpdate || null
       };
       console.log('Canvas data restored from cache, last updated:', canvasData.lastUpdate);
@@ -211,7 +322,16 @@ async function sendDataToMCPServer() {
         submissions: canvasData.submissions || {},
         modules: canvasData.modules || {},
         analytics: canvasData.analytics || {},
-        userProfile: canvasData.userProfile || null
+        userProfile: canvasData.userProfile || null,
+        grades: canvasData.grades || {},
+        assignmentGroups: canvasData.assignmentGroups || {},
+        announcements: canvasData.announcements || {},
+        missingSubmissions: canvasData.missingSubmissions || [],
+        todoItems: canvasData.todoItems || [],
+        plannerItems: canvasData.plannerItems || [],
+        discussions: canvasData.discussions || {},
+        pages: canvasData.pages || {},
+        files: canvasData.files || {}
       })
     });
 
@@ -406,6 +526,36 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       canvasData.userProfile = request.data.userProfile;
       canvasData.lastUpdate = new Date().toISOString();
     }
+    if (request.data.grades) {
+      Object.assign(canvasData.grades, request.data.grades);
+    }
+    if (request.data.assignmentGroups) {
+      Object.assign(canvasData.assignmentGroups, request.data.assignmentGroups);
+    }
+    if (request.data.announcements) {
+      Object.assign(canvasData.announcements, request.data.announcements);
+    }
+    if (request.data.missingSubmissions) {
+      canvasData.missingSubmissions = request.data.missingSubmissions;
+      canvasData.lastUpdate = new Date().toISOString();
+    }
+    if (request.data.todoItems) {
+      canvasData.todoItems = request.data.todoItems;
+      canvasData.lastUpdate = new Date().toISOString();
+    }
+    if (request.data.plannerItems) {
+      canvasData.plannerItems = request.data.plannerItems;
+      canvasData.lastUpdate = new Date().toISOString();
+    }
+    if (request.data.discussions) {
+      Object.assign(canvasData.discussions, request.data.discussions);
+    }
+    if (request.data.pages) {
+      Object.assign(canvasData.pages, request.data.pages);
+    }
+    if (request.data.files) {
+      Object.assign(canvasData.files, request.data.files);
+    }
 
     // Send updated data to MCP server
     sendDataToMCPServer();
@@ -462,13 +612,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             allAssignmentsResponse,
             calendarEventsResponse,
             upcomingEventsResponse,
-            userProfileResponse
+            userProfileResponse,
+            missingSubmissionsResponse,
+            todoItemsResponse,
+            plannerItemsResponse
           ] = await Promise.all([
             sendMessageToContent(tab.id, { type: 'FETCH_COURSES' }),
             sendMessageToContent(tab.id, { type: 'FETCH_ALL_ASSIGNMENTS' }),
             sendMessageToContent(tab.id, { type: 'FETCH_CALENDAR_EVENTS' }),
             sendMessageToContent(tab.id, { type: 'FETCH_UPCOMING_EVENTS' }),
-            sendMessageToContent(tab.id, { type: 'FETCH_USER_PROFILE' })
+            sendMessageToContent(tab.id, { type: 'FETCH_USER_PROFILE' }),
+            sendMessageToContent(tab.id, { type: 'FETCH_MISSING_SUBMISSIONS' }),
+            sendMessageToContent(tab.id, { type: 'FETCH_TODO_ITEMS' }),
+            sendMessageToContent(tab.id, { type: 'FETCH_PLANNER_ITEMS' })
           ]);
 
           // Build comprehensive response
@@ -478,6 +634,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             calendarEvents: calendarEventsResponse?.success ? calendarEventsResponse.data : [],
             upcomingEvents: upcomingEventsResponse?.success ? upcomingEventsResponse.data : [],
             userProfile: userProfileResponse?.success ? userProfileResponse.data : null,
+            missingSubmissions: missingSubmissionsResponse?.success ? missingSubmissionsResponse.data : [],
+            todoItems: todoItemsResponse?.success ? todoItemsResponse.data : [],
+            plannerItems: plannerItemsResponse?.success ? plannerItemsResponse.data : [],
             assignments: {} // Legacy format for backwards compatibility
           };
 
@@ -496,6 +655,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           }
           if (data.userProfile) {
             canvasData.userProfile = data.userProfile;
+          }
+          if (missingSubmissionsResponse?.success) {
+            canvasData.missingSubmissions = missingSubmissionsResponse.data;
+          }
+          if (todoItemsResponse?.success) {
+            canvasData.todoItems = todoItemsResponse.data;
+          }
+          if (plannerItemsResponse?.success) {
+            canvasData.plannerItems = plannerItemsResponse.data;
           }
           canvasData.lastUpdate = new Date().toISOString();
 
@@ -895,6 +1063,128 @@ async function handleToolCall(params) {
         };
       }
 
+    case 'get_course_grades':
+      try {
+        const tab = await getCanvasTab();
+        await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        if (args.course_id) {
+          const response = await sendMessageToContent(tab.id, { type: 'FETCH_COURSE_GRADES', courseId: args.course_id });
+          return { content: [{ type: "text", text: JSON.stringify(response?.success ? response.data : { error: 'Failed to fetch grades' }, null, 2) }] };
+        }
+
+        // All courses
+        const courses = canvasData.courses.length > 0 ? canvasData.courses :
+          ((await sendMessageToContent(tab.id, { type: 'FETCH_COURSES' }))?.data || []);
+        const gradesResults = await Promise.all(
+          courses.map(c => sendMessageToContent(tab.id, { type: 'FETCH_COURSE_GRADES', courseId: c.id }))
+        );
+        const allGrades = courses.map((c, i) => ({
+          courseId: c.id,
+          courseName: c.name,
+          grades: gradesResults[i]?.success ? gradesResults[i].data : null
+        }));
+        return { content: [{ type: "text", text: JSON.stringify({ grades: allGrades, count: allGrades.length }, null, 2) }] };
+      } catch (error) {
+        return { content: [{ type: "text", text: JSON.stringify({ error: error.message }, null, 2) }] };
+      }
+
+    case 'get_assignment_groups':
+      try {
+        const tab = await getCanvasTab();
+        await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const response = await sendMessageToContent(tab.id, { type: 'FETCH_ASSIGNMENT_GROUPS', courseId: args.course_id });
+        return { content: [{ type: "text", text: JSON.stringify({ courseId: args.course_id, groups: response?.success ? response.data : [] }, null, 2) }] };
+      } catch (error) {
+        return { content: [{ type: "text", text: JSON.stringify({ error: error.message }, null, 2) }] };
+      }
+
+    case 'get_course_announcements':
+      try {
+        const tab = await getCanvasTab();
+        await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const response = await sendMessageToContent(tab.id, { type: 'FETCH_COURSE_ANNOUNCEMENTS', courseId: args.course_id });
+        const announcements = response?.success ? response.data : [];
+        return { content: [{ type: "text", text: JSON.stringify({ courseId: args.course_id, announcements, count: announcements.length }, null, 2) }] };
+      } catch (error) {
+        return { content: [{ type: "text", text: JSON.stringify({ error: error.message }, null, 2) }] };
+      }
+
+    case 'get_missing_submissions':
+      try {
+        const tab = await getCanvasTab();
+        await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const response = await sendMessageToContent(tab.id, { type: 'FETCH_MISSING_SUBMISSIONS' });
+        const missing = response?.success ? response.data : canvasData.missingSubmissions;
+        return { content: [{ type: "text", text: JSON.stringify({ missingSubmissions: missing, count: missing.length }, null, 2) }] };
+      } catch (error) {
+        return { content: [{ type: "text", text: JSON.stringify({ error: error.message }, null, 2) }] };
+      }
+
+    case 'get_todo_items':
+      try {
+        const tab = await getCanvasTab();
+        await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const response = await sendMessageToContent(tab.id, { type: 'FETCH_TODO_ITEMS' });
+        const todos = response?.success ? response.data : canvasData.todoItems;
+        return { content: [{ type: "text", text: JSON.stringify({ todoItems: todos, count: todos.length }, null, 2) }] };
+      } catch (error) {
+        return { content: [{ type: "text", text: JSON.stringify({ error: error.message }, null, 2) }] };
+      }
+
+    case 'get_planner_items':
+      try {
+        const tab = await getCanvasTab();
+        await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const response = await sendMessageToContent(tab.id, { type: 'FETCH_PLANNER_ITEMS' });
+        const planner = response?.success ? response.data : canvasData.plannerItems;
+        return { content: [{ type: "text", text: JSON.stringify({ plannerItems: planner, count: planner.length }, null, 2) }] };
+      } catch (error) {
+        return { content: [{ type: "text", text: JSON.stringify({ error: error.message }, null, 2) }] };
+      }
+
+    case 'get_course_discussions':
+      try {
+        const tab = await getCanvasTab();
+        await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const response = await sendMessageToContent(tab.id, { type: 'FETCH_DISCUSSION_TOPICS', courseId: args.course_id });
+        const discussions = response?.success ? response.data : [];
+        return { content: [{ type: "text", text: JSON.stringify({ courseId: args.course_id, discussions, count: discussions.length }, null, 2) }] };
+      } catch (error) {
+        return { content: [{ type: "text", text: JSON.stringify({ error: error.message }, null, 2) }] };
+      }
+
+    case 'get_course_pages':
+      try {
+        const tab = await getCanvasTab();
+        await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const response = await sendMessageToContent(tab.id, { type: 'FETCH_COURSE_PAGES', courseId: args.course_id });
+        const pages = response?.success ? response.data : [];
+        return { content: [{ type: "text", text: JSON.stringify({ courseId: args.course_id, pages, count: pages.length }, null, 2) }] };
+      } catch (error) {
+        return { content: [{ type: "text", text: JSON.stringify({ error: error.message }, null, 2) }] };
+      }
+
+    case 'get_course_files':
+      try {
+        const tab = await getCanvasTab();
+        await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const response = await sendMessageToContent(tab.id, { type: 'FETCH_COURSE_FILES', courseId: args.course_id });
+        const files = response?.success ? response.data : [];
+        return { content: [{ type: "text", text: JSON.stringify({ courseId: args.course_id, files, count: files.length }, null, 2) }] };
+      } catch (error) {
+        return { content: [{ type: "text", text: JSON.stringify({ error: error.message }, null, 2) }] };
+      }
+
     default:
       throw new Error(`Unknown tool: ${name}`);
   }
@@ -961,6 +1251,15 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
         modules: {},
         analytics: {},
         userProfile: null,
+        grades: {},
+        assignmentGroups: {},
+        announcements: {},
+        missingSubmissions: [],
+        todoItems: [],
+        plannerItems: [],
+        discussions: {},
+        pages: {},
+        files: {},
         lastUpdate: null
       };
 

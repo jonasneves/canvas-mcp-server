@@ -65,13 +65,17 @@
 
   async function fetchCourses() {
     try {
-      const url = `${API_BASE}/courses?enrollment_state=active&completed=false&include[]=term&per_page=100`;
+      const url = `${API_BASE}/courses?enrollment_state=active&completed=false&include[]=term&include[]=favorites&per_page=100`;
       const courses = await fetchJsonWithPagination(url, 200);
       return courses.map(course => ({
         id: String(course.id),
         name: course.name,
         code: course.course_code,
         term: course.term?.name || course.term?.id || null,
+        startAt: course.start_at || null,
+        endAt: course.end_at || null,
+        enrollmentType: course.enrollments?.[0]?.type || null,
+        isFavorite: course.is_favorite || false,
         url: `${window.location.origin}/courses/${course.id}`
       }));
     } catch (error) {
@@ -121,6 +125,9 @@
               submissionTypes: assignment.submission_types || [],
               hasSubmittedSubmissions: assignment.has_submitted_submissions || false,
               gradingType: assignment.grading_type,
+              assignmentGroupId: assignment.assignment_group_id ? String(assignment.assignment_group_id) : null,
+              omitFromFinalGrade: assignment.omit_from_final_grade || false,
+              position: assignment.position || null,
               submission: assignment.submission ? {
                 submitted: !!assignment.submission.submitted_at,
                 submittedAt: assignment.submission.submitted_at,
@@ -212,7 +219,7 @@
 
   async function fetchUserSubmissions(courseId) {
     try {
-      const url = `${API_BASE}/courses/${courseId}/students/submissions?student_ids[]=self&include[]=assignment&per_page=100`;
+      const url = `${API_BASE}/courses/${courseId}/students/submissions?student_ids[]=self&include[]=assignment&include[]=submission_comments&per_page=100`;
       const submissions = await fetchJsonWithPagination(url, 200);
 
       return submissions.map(submission => ({
@@ -230,7 +237,13 @@
         workflowState: submission.workflow_state,
         attempt: submission.attempt,
         gradedAt: submission.graded_at,
-        previewUrl: submission.preview_url
+        previewUrl: submission.preview_url,
+        comments: (submission.submission_comments || []).map(c => ({
+          id: String(c.id),
+          comment: c.comment,
+          authorName: c.author_name,
+          createdAt: c.created_at
+        }))
       }));
     } catch (error) {
       return [];
@@ -256,7 +269,9 @@
           type: item.type,
           contentId: item.content_id ? String(item.content_id) : null,
           url: item.html_url,
-          published: item.published
+          published: item.published,
+          completionRequirement: item.completion_requirement || null,
+          completed: item.completion_requirement?.completed || false
         }))
       }));
     } catch (error) {
@@ -335,6 +350,178 @@
     }
   }
 
+  async function fetchCourseGrades(courseId) {
+    try {
+      const url = `${API_BASE}/courses/${courseId}/enrollments?user_id=self&type[]=StudentEnrollment&per_page=5`;
+      const enrollments = await fetchJsonWithPagination(url, 5);
+      if (!enrollments.length) return null;
+      const enrollment = enrollments[0];
+      return {
+        courseId: String(courseId),
+        currentGrade: enrollment.grades?.current_grade || null,
+        currentScore: enrollment.grades?.current_score || null,
+        finalGrade: enrollment.grades?.final_grade || null,
+        finalScore: enrollment.grades?.final_score || null,
+        enrollmentState: enrollment.enrollment_state
+      };
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async function fetchAssignmentGroups(courseId) {
+    try {
+      const url = `${API_BASE}/courses/${courseId}/assignment_groups?include[]=assignments&per_page=100`;
+      const groups = await fetchJsonWithPagination(url, 50);
+      return groups.map(group => ({
+        id: String(group.id),
+        name: group.name,
+        weight: group.group_weight || 0,
+        position: group.position,
+        assignments: (group.assignments || []).map(a => ({
+          id: String(a.id),
+          name: a.name,
+          dueDate: a.due_at || null,
+          pointsPossible: a.points_possible,
+          omitFromFinalGrade: a.omit_from_final_grade || false
+        }))
+      }));
+    } catch (error) {
+      return [];
+    }
+  }
+
+  async function fetchCourseAnnouncements(courseId) {
+    try {
+      const url = `${API_BASE}/courses/${courseId}/discussion_topics?only_announcements=true&order_by=recent_activity&per_page=20`;
+      const announcements = await fetchJsonWithPagination(url, 20);
+      return announcements.map(a => ({
+        id: String(a.id),
+        title: a.title,
+        message: a.message || '',
+        postedAt: a.posted_at,
+        authorName: a.author?.display_name || null,
+        url: a.html_url
+      }));
+    } catch (error) {
+      return [];
+    }
+  }
+
+  async function fetchMissingSubmissions() {
+    try {
+      const url = `${API_BASE}/users/self/missing_submissions?filter[]=submittable&per_page=50`;
+      const submissions = await fetchJsonWithPagination(url, 100);
+      return submissions.map(s => ({
+        id: String(s.id),
+        name: s.name,
+        dueDate: s.due_at || null,
+        pointsPossible: s.points_possible,
+        courseId: s.course_id ? String(s.course_id) : null,
+        url: s.html_url
+      }));
+    } catch (error) {
+      return [];
+    }
+  }
+
+  async function fetchTodoItems() {
+    try {
+      const url = `${API_BASE}/users/self/todo?per_page=50`;
+      const items = await fetchJson(url);
+      if (!Array.isArray(items)) return [];
+      return items.map(item => ({
+        type: item.type,
+        assignmentId: item.assignment ? String(item.assignment.id) : null,
+        assignmentName: item.assignment?.name || null,
+        courseId: item.course_id ? String(item.course_id) : null,
+        dueAt: item.assignment?.due_at || null,
+        pointsPossible: item.assignment?.points_possible || null,
+        htmlUrl: item.html_url
+      }));
+    } catch (error) {
+      return [];
+    }
+  }
+
+  async function fetchPlannerItems() {
+    try {
+      const url = `${API_BASE}/planner/items?per_page=50`;
+      const items = await fetchJsonWithPagination(url, 100);
+      return items.map(item => ({
+        plannableType: item.plannable_type,
+        plannableId: String(item.plannable_id),
+        courseId: item.course_id ? String(item.course_id) : null,
+        plannableDate: item.plannable_date,
+        title: item.plannable?.title || item.plannable?.name || null,
+        dueAt: item.plannable?.due_at || null,
+        pointsPossible: item.plannable?.points_possible || null,
+        completed: item.planner_override?.marked_complete || false,
+        htmlUrl: item.html_url
+      }));
+    } catch (error) {
+      return [];
+    }
+  }
+
+  async function fetchDiscussionTopics(courseId) {
+    try {
+      const url = `${API_BASE}/courses/${courseId}/discussion_topics?per_page=50&order_by=recent_activity`;
+      const topics = await fetchJsonWithPagination(url, 50);
+      return topics.map(t => ({
+        id: String(t.id),
+        title: t.title,
+        postedAt: t.posted_at,
+        lastReplyAt: t.last_reply_at,
+        isAnnouncement: t.is_announcement || false,
+        requireInitialPost: t.require_initial_post || false,
+        unreadCount: t.unread_count || 0,
+        replyCount: t.discussion_subentry_count || 0,
+        url: t.html_url
+      }));
+    } catch (error) {
+      return [];
+    }
+  }
+
+  async function fetchCoursePages(courseId) {
+    try {
+      const url = `${API_BASE}/courses/${courseId}/pages?per_page=50&sort=title`;
+      const pages = await fetchJsonWithPagination(url, 100);
+      return pages.map(p => ({
+        url: p.url,
+        title: p.title,
+        createdAt: p.created_at,
+        updatedAt: p.updated_at,
+        published: p.published,
+        frontPage: p.front_page || false,
+        htmlUrl: p.html_url
+      }));
+    } catch (error) {
+      return [];
+    }
+  }
+
+  async function fetchCourseFiles(courseId) {
+    try {
+      const url = `${API_BASE}/courses/${courseId}/files?per_page=50&sort=updated_at&order=desc`;
+      const files = await fetchJsonWithPagination(url, 100);
+      return files.map(f => ({
+        id: String(f.id),
+        displayName: f.display_name,
+        filename: f.filename,
+        contentType: f.content_type,
+        size: f.size,
+        createdAt: f.created_at,
+        updatedAt: f.updated_at,
+        url: f.url,
+        htmlUrl: f.html_url
+      }));
+    } catch (error) {
+      return [];
+    }
+  }
+
   if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const { type, courseId, assignmentId, startDate, endDate } = message;
@@ -392,6 +579,39 @@
         case 'FETCH_USER_PROFILE':
           promise = fetchUserProfile();
           break;
+        case 'FETCH_COURSE_GRADES':
+          if (!courseId) { sendResponse({ success: false, error: 'courseId required' }); return; }
+          promise = fetchCourseGrades(courseId);
+          break;
+        case 'FETCH_ASSIGNMENT_GROUPS':
+          if (!courseId) { sendResponse({ success: false, error: 'courseId required' }); return; }
+          promise = fetchAssignmentGroups(courseId);
+          break;
+        case 'FETCH_COURSE_ANNOUNCEMENTS':
+          if (!courseId) { sendResponse({ success: false, error: 'courseId required' }); return; }
+          promise = fetchCourseAnnouncements(courseId);
+          break;
+        case 'FETCH_MISSING_SUBMISSIONS':
+          promise = fetchMissingSubmissions();
+          break;
+        case 'FETCH_TODO_ITEMS':
+          promise = fetchTodoItems();
+          break;
+        case 'FETCH_PLANNER_ITEMS':
+          promise = fetchPlannerItems();
+          break;
+        case 'FETCH_DISCUSSION_TOPICS':
+          if (!courseId) { sendResponse({ success: false, error: 'courseId required' }); return; }
+          promise = fetchDiscussionTopics(courseId);
+          break;
+        case 'FETCH_COURSE_PAGES':
+          if (!courseId) { sendResponse({ success: false, error: 'courseId required' }); return; }
+          promise = fetchCoursePages(courseId);
+          break;
+        case 'FETCH_COURSE_FILES':
+          if (!courseId) { sendResponse({ success: false, error: 'courseId required' }); return; }
+          promise = fetchCourseFiles(courseId);
+          break;
         case 'FETCH_ALL_DATA':
           promise = (async () => {
             const courses = await fetchCourses();
@@ -444,6 +664,33 @@
               break;
             case 'FETCH_USER_PROFILE':
               canvasDataPayload = { userProfile: data };
+              break;
+            case 'FETCH_COURSE_GRADES':
+              canvasDataPayload = { grades: { [courseId]: data }, courseId };
+              break;
+            case 'FETCH_ASSIGNMENT_GROUPS':
+              canvasDataPayload = { assignmentGroups: { [courseId]: data }, courseId };
+              break;
+            case 'FETCH_COURSE_ANNOUNCEMENTS':
+              canvasDataPayload = { announcements: { [courseId]: data }, courseId };
+              break;
+            case 'FETCH_MISSING_SUBMISSIONS':
+              canvasDataPayload = { missingSubmissions: data };
+              break;
+            case 'FETCH_TODO_ITEMS':
+              canvasDataPayload = { todoItems: data };
+              break;
+            case 'FETCH_PLANNER_ITEMS':
+              canvasDataPayload = { plannerItems: data };
+              break;
+            case 'FETCH_DISCUSSION_TOPICS':
+              canvasDataPayload = { discussions: { [courseId]: data }, courseId };
+              break;
+            case 'FETCH_COURSE_PAGES':
+              canvasDataPayload = { pages: { [courseId]: data }, courseId };
+              break;
+            case 'FETCH_COURSE_FILES':
+              canvasDataPayload = { files: { [courseId]: data }, courseId };
               break;
             case 'FETCH_ALL_DATA':
               canvasDataPayload = data; // Already structured correctly

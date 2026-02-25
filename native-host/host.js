@@ -12,10 +12,11 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 const readline = require('readline');
+const config = require('./config');
 
 // Configuration
-const HTTP_PORT = 8765;  // For Chrome Extension data
-const LOG_FILE = path.join(process.env.HOME || process.env.USERPROFILE, 'canvas-mcp-host.log');
+const HTTP_PORT = config.httpPort;
+const LOG_FILE = config.logFile || path.join(process.env.HOME || process.env.USERPROFILE, 'canvas-mcp-host.log');
 
 // In-memory cache for Canvas data
 let canvasData = {
@@ -28,15 +29,47 @@ let canvasData = {
   modules: {},
   analytics: {},
   userProfile: null,
+  grades: {},
+  assignmentGroups: {},
+  announcements: {},
+  missingSubmissions: [],
+  todoItems: [],
+  plannerItems: [],
+  discussions: {},
+  pages: {},
+  files: {},
   lastUpdate: null
 };
 
-function log(message) {
+function log(message, level = 'INFO') {
   const timestamp = new Date().toISOString();
-  const logMessage = `[${timestamp}] ${message}\n`;
-  fs.appendFileSync(LOG_FILE, logMessage);
+  const logMessage = `[${timestamp}] [${level}] ${message}\n`;
+
+  try {
+    fs.appendFileSync(LOG_FILE, logMessage);
+  } catch (error) {
+    process.stderr.write(`[ERROR] Failed to write to log file: ${error.message}\n`);
+  }
+
   // Log to stderr (won't interfere with stdout MCP protocol)
-  process.stderr.write(logMessage);
+  if (config.verboseLogging || level === 'ERROR' || level === 'WARN') {
+    process.stderr.write(logMessage);
+  }
+}
+
+function logError(message, error) {
+  const errorDetails = error ? ` - ${error.message}\n${error.stack}` : '';
+  log(`${message}${errorDetails}`, 'ERROR');
+}
+
+function logWarn(message) {
+  log(message, 'WARN');
+}
+
+function logDebug(message) {
+  if (config.verboseLogging) {
+    log(message, 'DEBUG');
+  }
 }
 
 log('Canvas MCP Server started');
@@ -47,7 +80,8 @@ log('Canvas MCP Server started');
 
 function handleRequest(req, res) {
   // Enable CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const allowedOrigin = config.cors.allowedOrigins[0] || '*';
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
@@ -117,15 +151,64 @@ function handleRequest(req, res) {
           log(`Received user profile for ${data.userProfile.name}`);
         }
 
+        if (data.grades) {
+          Object.assign(canvasData.grades, data.grades);
+          log(`Received grades for ${Object.keys(data.grades).length} courses`);
+        }
+
+        if (data.assignmentGroups) {
+          Object.assign(canvasData.assignmentGroups, data.assignmentGroups);
+          log(`Received assignment groups for ${Object.keys(data.assignmentGroups).length} courses`);
+        }
+
+        if (data.announcements) {
+          Object.assign(canvasData.announcements, data.announcements);
+          log(`Received announcements for ${Object.keys(data.announcements).length} courses`);
+        }
+
+        if (data.missingSubmissions) {
+          canvasData.missingSubmissions = data.missingSubmissions;
+          log(`Received ${data.missingSubmissions.length} missing submissions`);
+        }
+
+        if (data.todoItems) {
+          canvasData.todoItems = data.todoItems;
+          log(`Received ${data.todoItems.length} to-do items`);
+        }
+
+        if (data.plannerItems) {
+          canvasData.plannerItems = data.plannerItems;
+          log(`Received ${data.plannerItems.length} planner items`);
+        }
+
+        if (data.discussions) {
+          Object.assign(canvasData.discussions, data.discussions);
+          log(`Received discussions for ${Object.keys(data.discussions).length} courses`);
+        }
+
+        if (data.pages) {
+          Object.assign(canvasData.pages, data.pages);
+          log(`Received pages for ${Object.keys(data.pages).length} courses`);
+        }
+
+        if (data.files) {
+          Object.assign(canvasData.files, data.files);
+          log(`Received files for ${Object.keys(data.files).length} courses`);
+        }
+
         canvasData.lastUpdate = new Date().toISOString();
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ status: 'success', received: true }));
 
       } catch (error) {
-        log(`Error parsing Canvas data: ${error.message}`);
+        logError('Error parsing Canvas data', error);
         res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ status: 'error', message: error.message }));
+        res.end(JSON.stringify({
+          status: 'error',
+          message: 'Failed to parse Canvas data',
+          details: error.message
+        }));
       }
     });
 
@@ -330,6 +413,99 @@ async function handleMCPRequest(request) {
                 properties: {},
                 required: []
               }
+            },
+            {
+              name: "get_course_grades",
+              description: "Get current and final grades for a course. Omit course_id to get grades for all active courses.",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  course_id: { type: "string", description: "The Canvas course ID (optional)" }
+                },
+                required: []
+              }
+            },
+            {
+              name: "get_assignment_groups",
+              description: "Get assignment groups with grade weights for a course (e.g. Homework 20%, Exams 50%)",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  course_id: { type: "string", description: "The Canvas course ID" }
+                },
+                required: ["course_id"]
+              }
+            },
+            {
+              name: "get_course_announcements",
+              description: "Get recent announcements posted by instructors in a course",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  course_id: { type: "string", description: "The Canvas course ID" }
+                },
+                required: ["course_id"]
+              }
+            },
+            {
+              name: "get_missing_submissions",
+              description: "Get all missing/unsubmitted assignments across all courses",
+              inputSchema: {
+                type: "object",
+                properties: {},
+                required: []
+              }
+            },
+            {
+              name: "get_todo_items",
+              description: "Get the user's Canvas to-do list (unsubmitted assignments, unread items)",
+              inputSchema: {
+                type: "object",
+                properties: {},
+                required: []
+              }
+            },
+            {
+              name: "get_planner_items",
+              description: "Get upcoming planner items including assignments, quizzes, and student-created to-dos",
+              inputSchema: {
+                type: "object",
+                properties: {},
+                required: []
+              }
+            },
+            {
+              name: "get_course_discussions",
+              description: "Get discussion topics for a course",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  course_id: { type: "string", description: "The Canvas course ID" }
+                },
+                required: ["course_id"]
+              }
+            },
+            {
+              name: "get_course_pages",
+              description: "Get pages (wiki/syllabus) for a course",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  course_id: { type: "string", description: "The Canvas course ID" }
+                },
+                required: ["course_id"]
+              }
+            },
+            {
+              name: "get_course_files",
+              description: "Get files uploaded to a course",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  course_id: { type: "string", description: "The Canvas course ID" }
+                },
+                required: ["course_id"]
+              }
             }
           ]
         };
@@ -531,6 +707,113 @@ async function handleMCPRequest(request) {
             };
           }
 
+        } else if (toolName === 'get_course_grades') {
+          const courseId = params.arguments?.course_id;
+
+          if (courseId) {
+            const grades = canvasData.grades[courseId] || null;
+            result = {
+              content: [{ type: "text", text: JSON.stringify(
+                grades || { courseId, note: "Grades not available. Refresh Canvas data." },
+                null, 2
+              ) }]
+            };
+          } else {
+            const allGrades = canvasData.courses.map(c => ({
+              courseId: c.id,
+              courseName: c.name,
+              grades: canvasData.grades[c.id] || null
+            }));
+            result = {
+              content: [{ type: "text", text: JSON.stringify(
+                { grades: allGrades, count: allGrades.length },
+                null, 2
+              ) }]
+            };
+          }
+
+        } else if (toolName === 'get_assignment_groups') {
+          const courseId = params.arguments.course_id;
+          const groups = canvasData.assignmentGroups[courseId] || [];
+          result = {
+            content: [{ type: "text", text: JSON.stringify(
+              { courseId, groups, count: groups.length,
+                note: groups.length === 0 ? "No data. Fetch assignment groups via the Chrome extension." : undefined },
+              null, 2
+            ) }]
+          };
+
+        } else if (toolName === 'get_course_announcements') {
+          const courseId = params.arguments.course_id;
+          const announcements = canvasData.announcements[courseId] || [];
+          result = {
+            content: [{ type: "text", text: JSON.stringify(
+              { courseId, announcements, count: announcements.length,
+                note: announcements.length === 0 ? "No announcements cached. Refresh Canvas data." : undefined },
+              null, 2
+            ) }]
+          };
+
+        } else if (toolName === 'get_missing_submissions') {
+          result = {
+            content: [{ type: "text", text: JSON.stringify(
+              { missingSubmissions: canvasData.missingSubmissions, count: canvasData.missingSubmissions.length,
+                lastUpdate: canvasData.lastUpdate },
+              null, 2
+            ) }]
+          };
+
+        } else if (toolName === 'get_todo_items') {
+          result = {
+            content: [{ type: "text", text: JSON.stringify(
+              { todoItems: canvasData.todoItems, count: canvasData.todoItems.length,
+                lastUpdate: canvasData.lastUpdate },
+              null, 2
+            ) }]
+          };
+
+        } else if (toolName === 'get_planner_items') {
+          result = {
+            content: [{ type: "text", text: JSON.stringify(
+              { plannerItems: canvasData.plannerItems, count: canvasData.plannerItems.length,
+                lastUpdate: canvasData.lastUpdate },
+              null, 2
+            ) }]
+          };
+
+        } else if (toolName === 'get_course_discussions') {
+          const courseId = params.arguments.course_id;
+          const discussions = canvasData.discussions[courseId] || [];
+          result = {
+            content: [{ type: "text", text: JSON.stringify(
+              { courseId, discussions, count: discussions.length,
+                note: discussions.length === 0 ? "No discussions cached. Refresh Canvas data." : undefined },
+              null, 2
+            ) }]
+          };
+
+        } else if (toolName === 'get_course_pages') {
+          const courseId = params.arguments.course_id;
+          const pages = canvasData.pages[courseId] || [];
+          result = {
+            content: [{ type: "text", text: JSON.stringify(
+              { courseId, pages, count: pages.length,
+                note: pages.length === 0 ? "No pages cached. Refresh Canvas data." : undefined },
+              null, 2
+            ) }]
+          };
+
+        } else if (toolName === 'get_course_files') {
+          const courseId = params.arguments.course_id;
+          const files = canvasData.files[courseId] || [];
+          result = {
+            content: [{ type: "text", text: JSON.stringify(
+              { courseId, files, count: files.length,
+                note: files.length === 0 ? "No files cached. Refresh Canvas data." : undefined },
+              null, 2
+            ) }]
+          };
+
         } else {
           throw new Error(`Unknown tool: ${toolName}`);
         }
@@ -547,13 +830,14 @@ async function handleMCPRequest(request) {
     };
 
   } catch (error) {
-    log(`Error in MCP handler: ${error.message}`);
+    logError('Error in MCP handler', error);
     return {
       jsonrpc: "2.0",
       id: id,
       error: {
         code: -32603,
-        message: error.message
+        message: error.message,
+        data: config.verboseLogging ? error.stack : undefined
       }
     };
   }
@@ -569,6 +853,15 @@ httpServer.listen(HTTP_PORT, 'localhost', () => {
   log(`Extension endpoint: http://localhost:${HTTP_PORT}/canvas-data`);
 });
 
+httpServer.on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
+    logError(`Port ${HTTP_PORT} is already in use. Please change the port in config.js or set CANVAS_MCP_PORT environment variable.`, error);
+  } else {
+    logError('HTTP server error', error);
+  }
+  process.exit(1);
+});
+
 // Start STDIO handler for Claude Desktop
 log('Starting STDIO handler for Claude Desktop');
 
@@ -581,24 +874,27 @@ const rl = readline.createInterface({
 rl.on('line', async (line) => {
   try {
     const request = JSON.parse(line);
-    log(`MCP Request: ${request.method}`);
+    logDebug(`MCP Request: ${request.method}`);
 
     const response = await handleMCPRequest(request);
 
     // Send response via stdout (newline-delimited JSON)
     process.stdout.write(JSON.stringify(response) + '\n');
+    logDebug(`MCP Response sent for: ${request.method}`);
 
   } catch (error) {
-    log(`Error handling request: ${error.message}`);
+    logError('Error handling MCP request', error);
 
     // Send error response
-    process.stdout.write(JSON.stringify({
+    const errorResponse = {
       jsonrpc: "2.0",
       error: {
         code: -32700,
-        message: `Parse error: ${error.message}`
+        message: 'Parse error: Invalid JSON received',
+        data: config.verboseLogging ? error.message : undefined
       }
-    }) + '\n');
+    };
+    process.stdout.write(JSON.stringify(errorResponse) + '\n');
   }
 });
 

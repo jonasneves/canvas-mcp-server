@@ -1,41 +1,26 @@
-.PHONY: help release release-dev package test clean install-deps
+.PHONY: help package test clean install-deps
 
 # Default target
 help:
 	@echo "Canvas MCP Server - Build and Release Automation"
 	@echo ""
 	@echo "Available commands:"
-	@echo "  make release       - Create release packages"
-	@echo "  make release-dev   - Create unminified release (for debugging)"
-	@echo "  make package       - Same as release"
+	@echo "  make package       - Create release packages"
 	@echo "  make test          - Verify extension structure"
 	@echo "  make clean         - Remove build artifacts"
 	@echo "  make install-deps  - Install Node.js dependencies"
 	@echo ""
 	@echo "Examples:"
-	@echo "  make release           # Creates release with current version"
-	@echo "  make release-dev       # Creates unminified release for debugging"
-	@echo "  VERSION=1.0.1 make release  # Creates release with specific version"
+	@echo "  make package               # Creates release with current version"
+	@echo "  VERSION=1.0.1 make package # Creates release with specific version"
 
 # Create release packages
-release:
+package:
 	@echo "Creating release packages..."
 	@if [ -n "$(VERSION)" ]; then \
 		./scripts/release.sh $(VERSION); \
 	else \
 		./scripts/release.sh; \
-	fi
-
-# Alias for release
-package: release
-
-# Create unminified release packages (for debugging)
-release-dev:
-	@echo "Creating unminified release packages..."
-	@if [ -n "$(VERSION)" ]; then \
-		./scripts/release.sh --no-minify $(VERSION); \
-	else \
-		./scripts/release.sh --no-minify; \
 	fi
 
 # Install Node.js dependencies

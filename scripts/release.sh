@@ -17,15 +17,10 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # Parse arguments
-MINIFY=true
 VERSION_ARG=""
 
 while [[ $# -gt 0 ]]; do
     case $1 in
-        --no-minify)
-            MINIFY=false
-            shift
-            ;;
         *)
             VERSION_ARG="$1"
             shift
@@ -60,13 +55,6 @@ else
     NEW_VERSION=$VERSION_ARG
 fi
 
-# Show build type
-if [ "$MINIFY" = true ]; then
-    echo -e "${GREEN}Build type: MINIFIED${NC}"
-else
-    echo -e "${GREEN}Build type: Standard (unminified)${NC}"
-fi
-
 echo -e "${GREEN}Release version: $NEW_VERSION${NC}"
 echo ""
 
@@ -78,10 +66,8 @@ required_files=(
     "extension/manifest.json"
     "extension/background.js"
     "extension/content.js"
-    "extension/sidepanel.html"
-    "extension/sidepanel.js"
-    "extension/schedule.html"
-    "extension/schedule.js"
+    "extension/popup.html"
+    "extension/popup.js"
     "extension/icon-16.png"
     "extension/icon-48.png"
     "extension/icon-128.png"
@@ -131,75 +117,60 @@ fi
 OUTPUT_DIR="$PROJECT_ROOT/dist"
 mkdir -p "$OUTPUT_DIR"
 
-# Run minification if requested
-if [ "$MINIFY" = true ]; then
-    echo -e "${BLUE}Running JavaScript minification...${NC}"
-
-    # Check if node_modules exists, if not install dependencies
-    if [ ! -d "$PROJECT_ROOT/node_modules" ]; then
-        echo -e "${YELLOW}Installing dependencies...${NC}"
-        cd "$PROJECT_ROOT"
-        npm install --silent
-    fi
-
-    # Run minification script
-    cd "$PROJECT_ROOT"
-    node scripts/minify.js
-
-    # Use build directory for minified release
-    EXTENSION_SOURCE="$PROJECT_ROOT/build/extension"
-    PACKAGE_SUFFIX="-mini"
-    echo ""
-else
-    # Use original extension directory
-    EXTENSION_SOURCE="$PROJECT_ROOT/extension"
-    PACKAGE_SUFFIX=""
-fi
+EXTENSION_SOURCE="$PROJECT_ROOT/extension"
 
 # Create Chrome Web Store package
 echo -e "${BLUE}Creating Chrome Web Store package...${NC}"
 cd "$EXTENSION_SOURCE"
-zip -r "$OUTPUT_DIR/canvas-mcp-server-extension-v$NEW_VERSION$PACKAGE_SUFFIX.zip" \
+zip -r "$OUTPUT_DIR/canvas-mcp-server-extension-v$NEW_VERSION.zip" \
     manifest.json \
     background.js \
     content.js \
-    sidepanel.html \
-    sidepanel.js \
-    schedule.html \
-    schedule.js \
-    schedule.css \
+    popup.html \
+    popup.js \
+    colors.css \
     icon-16.png \
     icon-48.png \
     icon-128.png \
-    lib/ \
-    types/ \
     -x "*.md" "*.DS_Store" "*node_modules*" > /dev/null
 
 cd "$PROJECT_ROOT"
 
 FILE_SIZE=$(ls -lh "$OUTPUT_DIR/canvas-mcp-server-extension-v$NEW_VERSION$PACKAGE_SUFFIX.zip" | awk '{print $5}')
-echo -e "${GREEN}✓ Package created: canvas-mcp-server-extension-v$NEW_VERSION$PACKAGE_SUFFIX.zip ($FILE_SIZE)${NC}"
+echo -e "${GREEN}✓ Package created: canvas-mcp-server-extension-v$NEW_VERSION.zip ($FILE_SIZE)${NC}"
 
-# Create native host package
-echo -e "${BLUE}Creating native host package...${NC}"
+# Create native host packages
+echo -e "${BLUE}Creating native host packages...${NC}"
 cd "$PROJECT_ROOT/native-host"
+
 zip -r "$OUTPUT_DIR/canvas-mcp-server-native-host-v$NEW_VERSION.zip" \
     host.js \
+    config.js \
     package.json \
     package-lock.json \
     manifest.json \
     README.md \
     -x "*.DS_Store" "*node_modules*" > /dev/null
 
+# DXT package for Claude Desktop drag-and-drop install
+zip -r "$OUTPUT_DIR/canvas-mcp-server-native-host.dxt" \
+    host.js \
+    config.js \
+    manifest.json \
+    package.json \
+    package-lock.json > /dev/null
+
 cd "$PROJECT_ROOT"
 
 FILE_SIZE=$(ls -lh "$OUTPUT_DIR/canvas-mcp-server-native-host-v$NEW_VERSION.zip" | awk '{print $5}')
 echo -e "${GREEN}✓ Native host package created ($FILE_SIZE)${NC}"
+FILE_SIZE=$(ls -lh "$OUTPUT_DIR/canvas-mcp-server-native-host.dxt" | awk '{print $5}')
+echo -e "${GREEN}✓ DXT package created ($FILE_SIZE)${NC}"
 echo ""
 
 # Verify ZIP contents
 echo -e "${BLUE}Verifying package contents...${NC}"
-FILE_COUNT=$(unzip -l "$OUTPUT_DIR/canvas-mcp-server-extension-v$NEW_VERSION$PACKAGE_SUFFIX.zip" | grep -c "^-" || true)
+FILE_COUNT=$(unzip -l "$OUTPUT_DIR/canvas-mcp-server-extension-v$NEW_VERSION.zip" | grep -c "^-" || true)
 echo -e "${GREEN}✓ Extension package contains $FILE_COUNT files${NC}"
 echo ""
 
@@ -388,15 +359,11 @@ echo -e "${BLUE}Version:${NC} $NEW_VERSION"
 echo -e "${BLUE}Output Directory:${NC} $OUTPUT_DIR"
 echo ""
 echo -e "${YELLOW}Files created:${NC}"
-echo -e "  - canvas-mcp-server-extension-v$NEW_VERSION$PACKAGE_SUFFIX.zip"
+echo -e "  - canvas-mcp-server-extension-v$NEW_VERSION.zip"
 echo -e "  - canvas-mcp-server-native-host-v$NEW_VERSION.zip"
+echo -e "  - canvas-mcp-server-native-host.dxt"
 echo -e "  - release-notes-v$NEW_VERSION.md"
 echo -e "  - submission-checklist-v$NEW_VERSION.md"
-
-if [ "$MINIFY" = true ]; then
-    echo ""
-    echo -e "${GREEN}JavaScript files have been minified for production!${NC}"
-fi
 echo ""
 echo -e "${YELLOW}Next steps:${NC}"
 echo -e "  1. Review ${BLUE}dist/submission-checklist-v$NEW_VERSION.md${NC}"
