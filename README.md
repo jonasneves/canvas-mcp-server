@@ -1,5 +1,11 @@
 # Canvas MCP Server
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-16%2B-green?logo=node.js)](https://nodejs.org)
+[![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-blue?logo=googlechrome)](https://developer.chrome.com/docs/extensions/)
+[![MCP](https://img.shields.io/badge/MCP-Compatible-purple)](https://modelcontextprotocol.io)
+[![GitHub Release](https://img.shields.io/github/v/release/jonasneves/canvas-mcp-server?include_prereleases)](https://github.com/jonasneves/canvas-mcp-server/releases)
+
 Connect Claude Desktop to your Canvas LMS data through a Chrome extension and native messaging host.
 
 ## Architecture
