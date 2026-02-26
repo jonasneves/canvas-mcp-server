@@ -86,15 +86,32 @@ npm install
 
 ## Available MCP Tools
 
+**Dashboard & Planning**
 - `list_courses` - Get all active courses
-- `get_course_assignments` - Get assignments for a specific course
-- `list_all_assignments` - Get all assignments with submission status
-- `get_assignment_details` - Get detailed assignment info including rubrics
-- `list_calendar_events` - Get calendar events within a date range
-- `get_user_submissions` - Get all submissions for a course
-- `list_course_modules` - Get course modules and items
+- `list_all_assignments` - Get all assignments with submission status across all courses
 - `list_upcoming_events` - Get upcoming assignments and events
-- `get_course_analytics` - Get course analytics (if enabled)
+- `list_calendar_events` - Get calendar events within a date range
+- `get_missing_submissions` - Get all missing/unsubmitted assignments across courses
+- `get_todo_items` - Get Canvas to-do list (unsubmitted, unread items)
+- `get_planner_items` - Get upcoming planner items including quizzes and student to-dos
+
+**Grades & Assignments**
+- `get_course_assignments` - Get assignments for a specific course
+- `get_assignment_details` - Get detailed assignment info including rubrics
+- `get_assignment_groups` - Get grade weights by group (e.g. Homework 20%, Exams 50%)
+- `get_course_grades` - Get current and final grades; omit `course_id` for all courses
+- `get_user_submissions` - Get all submissions for a course
+
+**Course Content**
+- `list_course_modules` - Get course modules and items
+- `get_course_announcements` - Get recent instructor announcements
+- `get_course_discussions` - Get discussion topics for a course
+- `get_course_pages` - Get wiki pages and syllabus
+- `get_course_files` - Get files uploaded to a course
+- `get_course_analytics` - Get page views, participations, tardiness (if enabled)
+
+**User**
+- `get_user_profile` - Get profile info: name, email, bio, pronouns, timezone
 
 ## Troubleshooting
 

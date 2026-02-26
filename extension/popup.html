@@ -323,6 +323,35 @@
       border: 1px solid #E5E7EB;
     }
 
+    /* Tool List */
+    .tool-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .tool-item {
+      padding: 8px 10px;
+      border-radius: 6px;
+      background: white;
+      border: 1px solid #E5E7EB;
+    }
+
+    .tool-name {
+      display: block;
+      font-family: ui-monospace, 'SF Mono', Monaco, monospace;
+      font-size: 11px;
+      font-weight: 600;
+      color: #1E3A5F;
+      margin-bottom: 2px;
+    }
+
+    .tool-desc {
+      font-size: 11px;
+      color: #6B7280;
+      line-height: 1.4;
+    }
+
     /* Scrollbar */
     ::-webkit-scrollbar {
       width: 6px;
@@ -388,6 +417,19 @@
       <button class="primary" id="refreshData" style="width: 100%; margin-bottom: 8px;">Sync Canvas Data</button>
       <button class="secondary" id="testListCourses" style="width: 100%;">Test Connection</button>
       <div class="output" id="output"></div>
+    </div>
+
+    <!-- Available Tools -->
+    <div class="card" style="padding: 0; overflow: hidden;">
+      <button class="setup-toggle" id="toolsToggle">
+        <span>Available Tools <span id="toolsCount" style="font-weight: 400; color: #9CA3AF;"></span></span>
+        <span class="chevron">▶</span>
+      </button>
+      <div class="setup-content" id="toolsContent">
+        <div class="tool-list" id="toolList">
+          <div style="color: #9CA3AF; font-size: 12px;">Loading...</div>
+        </div>
+      </div>
     </div>
 
     <!-- Setup Instructions -->

@@ -87,18 +87,12 @@ document.getElementById('refreshData').addEventListener('click', async () => {
     });
 
     if (response && response.success) {
-      const coursesCount = response.data.courses?.length || 0;
-      const allAssignmentsCount = response.data.allAssignments?.length || 0;
-      const calendarEventsCount = response.data.calendarEvents?.length || 0;
-      const upcomingEventsCount = response.data.upcomingEvents?.length || 0;
+      const counts = Object.entries(response.data)
+        .filter(([, v]) => Array.isArray(v))
+        .map(([k, v]) => `${k}: ${v.length}`)
+        .join('\n');
 
-      showOutput(
-        `✓ Sync complete\n\n` +
-        `Courses: ${coursesCount}\n` +
-        `All Assignments: ${allAssignmentsCount}\n` +
-        `Calendar Events: ${calendarEventsCount}\n` +
-        `Upcoming Events: ${upcomingEventsCount}`
-      );
+      showOutput(`✓ Sync complete\n\n${counts}`);
       updateStatus();
 
       // Hide output after 4 seconds
@@ -117,6 +111,38 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
     updateCanvasUrl();
   }
 });
+
+// Available Tools panel
+const toolsToggle = document.getElementById('toolsToggle');
+const toolsContent = document.getElementById('toolsContent');
+const toolsChevron = toolsToggle.querySelector('.chevron');
+
+toolsToggle.addEventListener('click', async () => {
+  const isOpen = toolsContent.classList.toggle('open');
+  toolsChevron.classList.toggle('open', isOpen);
+  if (isOpen) loadTools();
+});
+
+async function loadTools() {
+  const toolList = document.getElementById('toolList');
+  if (toolList.dataset.loaded) return;
+
+  const response = await sendMCPRequest('tools/list');
+  if (!response || !response.tools) {
+    toolList.innerHTML = '<div style="color: #DC2626; font-size: 12px;">Failed to load tools</div>';
+    return;
+  }
+
+  const tools = response.tools;
+  document.getElementById('toolsCount').textContent = `(${tools.length})`;
+  toolList.innerHTML = tools.map(t =>
+    `<div class="tool-item">
+      <code class="tool-name">${t.name}</code>
+      <span class="tool-desc">${t.description}</span>
+    </div>`
+  ).join('');
+  toolList.dataset.loaded = 'true';
+}
 
 // Setup instructions toggle
 const claudeConfigToggle = document.getElementById('claudeConfigToggle');
@@ -224,4 +250,4 @@ document.getElementById('autoDetectUrl').addEventListener('click', async () => {
 // Initial load
 updateCanvasUrl();
 updateStatus();
-setInterval(updateStatus, 2000);
+setInterval(updateStatus, 10000);

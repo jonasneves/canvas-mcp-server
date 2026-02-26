@@ -66,6 +66,7 @@ required_files=(
     "extension/manifest.json"
     "extension/background.js"
     "extension/content.js"
+    "extension/tools.js"
     "extension/popup.html"
     "extension/popup.js"
     "extension/icon-16.png"
@@ -126,6 +127,7 @@ zip -r "$OUTPUT_DIR/canvas-mcp-server-extension-v$NEW_VERSION.zip" \
     manifest.json \
     background.js \
     content.js \
+    tools.js \
     popup.html \
     popup.js \
     colors.css \
