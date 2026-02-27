@@ -4,480 +4,386 @@
   <meta charset="UTF-8">
   <link rel="stylesheet" href="colors.css">
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      width: 380px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #F3F2F1;
-      color: #262626;
-      line-height: 1.5;
+      width: 360px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      background: #F2F2F7;
+      color: #000;
+      font-size: 15px;
+      line-height: 1.4;
     }
 
-    /* Header */
+    /* ── Header ── */
     .header {
-      background: var(--gradient-primary);
-      padding: 20px;
-      position: relative;
-    }
-
-    .header::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(to right, rgba(30, 58, 95, 0.3), rgba(44, 79, 124, 0.3));
-    }
-
-    .header-content {
-      position: relative;
-      z-index: 1;
+      background: var(--color-primary);
+      padding: 14px 16px;
       display: flex;
       align-items: center;
-      gap: 12px;
-    }
-
-    .header-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
-      overflow: hidden;
-      flex-shrink: 0;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    }
-
-    .header-icon img {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-
-    .title {
-      font-size: 18px;
-      font-weight: 700;
-      color: white;
-      letter-spacing: -0.02em;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Content */
-    .content {
-      padding: 20px;
-    }
-
-    /* Cards */
-    .card {
-      background: white;
-      border: 1px solid #E5E7EB;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .card:hover {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    }
-
-    .card-title {
-      font-size: 11px;
-      font-weight: 600;
-      color: #6B7280;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 12px;
-    }
-
-    /* Canvas URL */
-    .canvas-url-input {
-      width: 100%;
-      padding: 10px 12px;
-      font-size: 13px;
-      border: 1px solid #E5E7EB;
-      border-radius: 8px;
-      font-family: ui-monospace, 'SF Mono', Monaco, monospace;
-      color: #111827;
-      background: #FAFAFA;
-      transition: all 0.2s ease;
-      margin-bottom: 10px;
-    }
-
-    .canvas-url-input:focus {
-      outline: none;
-      border-color: var(--color-primary);
-      background: white;
-      box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1);
-    }
-
-    .button-row {
-      display: flex;
-      gap: 8px;
-    }
-
-    /* Status Grid */
-    .status-grid {
-      display: grid;
       gap: 10px;
     }
-
-    .status-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 14px;
-      background: #FAFAFA;
-      border: 1px solid #E5E7EB;
-      border-radius: 8px;
-      font-size: 13px;
-      transition: all 0.2s ease;
+    .header-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 7px;
+      overflow: hidden;
+      flex-shrink: 0;
     }
-
-    .status-item:hover {
-      background: white;
-      border-color: var(--color-primary);
-    }
-
-    .status-label {
-      color: #6B7280;
-      font-weight: 500;
-    }
-
-    .status-value {
+    .header-icon img { width: 100%; height: 100%; display: block; }
+    .header-title {
+      font-size: 17px;
       font-weight: 600;
-      color: #111827;
+      color: white;
+      letter-spacing: -0.01em;
     }
 
-    .status-value.connected {
-      color: var(--color-success);
+    /* ── Content ── */
+    .content { padding: 20px 16px 28px; }
+
+    /* ── Section labels (above grouped sections) ── */
+    .section-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #8E8E93;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0 0 6px 4px;
     }
 
-    .status-value.disconnected {
-      color: var(--color-danger);
+    /* ── Inset grouped section ── */
+    .section-group {
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 20px;
     }
 
-    /* Buttons */
-    button {
+    /* ── List rows ── */
+    .row {
+      display: flex;
+      align-items: center;
+      min-height: 44px;
       padding: 10px 16px;
+      position: relative;
+    }
+    .row + .row::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 16px; right: 0;
+      height: 0.5px;
+      background: rgba(60, 60, 67, 0.18);
+    }
+    .row-label {
+      font-size: 15px;
+      color: #000;
+      flex: 1;
+    }
+
+    /* ── Status values ── */
+    .status-value {
+      font-size: 15px;
+      color: #8E8E93;
+      font-weight: 500;
+    }
+    .status-value.connected { color: #34C759; }
+    .status-value.disconnected { color: #FF3B30; }
+
+    /* ── URL input row ── */
+    .url-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-family: ui-monospace, 'SF Mono', monospace;
+      font-size: 13px;
+      color: #000;
+      background: transparent;
+      min-width: 0;
+    }
+    .url-input::placeholder { color: #C7C7CC; }
+    .ghost-btn {
       font-size: 13px;
       font-weight: 500;
+      color: #007AFF;
+      background: none;
       border: none;
-      border-radius: 8px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      padding: 4px 0 4px 10px;
+      flex-shrink: 0;
       font-family: inherit;
     }
+    .ghost-btn:active { opacity: 0.6; }
 
-    button.primary {
-      background: var(--gradient-primary);
-      color: white;
-    }
-
-    button.primary:hover {
-      box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
-    }
-
-    button.secondary {
-      background: #F3F4F6;
-      color: #374151;
-      border: 1px solid #E5E7EB;
-    }
-
-    button.secondary:hover {
-      background: #E5E7EB;
-    }
-
-    button.ghost {
-      background: transparent;
-      color: #6B7280;
-      font-size: 12px;
-      padding: 8px 12px;
-    }
-
-    button.ghost:hover {
-      background: #F3F4F6;
-    }
-
-    button:active {
-      opacity: 0.9;
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    /* Status Messages */
+    /* ── URL status feedback ── */
     .status-message {
-      margin-top: 10px;
-      padding: 10px 12px;
-      border-radius: 8px;
       font-size: 12px;
-      display: none;
       font-weight: 500;
+      padding: 8px 16px;
+      display: none;
+      border-top: 0.5px solid rgba(60, 60, 67, 0.18);
     }
+    .status-message.show { display: block; }
+    .status-message.success { color: #34C759; }
+    .status-message.error { color: #FF3B30; }
 
-    .status-message.show {
+    /* ── Action buttons ── */
+    .action-btn {
       display: block;
+      width: 100%;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 10px;
+      padding: 13px 16px;
+      text-align: center;
+      transition: opacity 0.15s;
+    }
+    .action-btn:active { opacity: 0.75; }
+    .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .action-btn.primary {
+      background: var(--color-primary);
+      color: white;
+      margin-bottom: 10px;
+    }
+    .action-btn.secondary {
+      background: white;
+      color: var(--color-primary);
     }
 
-    .status-message.success {
-      background: #ECFDF5;
-      color: #059669;
-      border: 1px solid #D1FAE5;
-    }
-
-    .status-message.error {
-      background: #FEF2F2;
-      color: #DC2626;
-      border: 1px solid #FEE2E2;
-    }
-
-    /* Output */
+    /* ── Output console ── */
     .output {
       margin-top: 12px;
-      padding: 14px;
-      background: #1F2937;
-      color: #E5E7EB;
-      border-radius: 8px;
-      font-family: ui-monospace, 'SF Mono', Monaco, monospace;
+      padding: 12px 14px;
+      background: #1C1C1E;
+      color: #E5E5EA;
+      border-radius: 10px;
+      font-family: ui-monospace, 'SF Mono', monospace;
       font-size: 11px;
       white-space: pre-wrap;
       word-break: break-word;
-      max-height: 180px;
+      max-height: 160px;
       overflow-y: auto;
       display: none;
       line-height: 1.6;
     }
+    .output.show { display: block; }
 
-    .output.show {
-      display: block;
-    }
-
-    /* Setup Instructions */
-    .setup-toggle {
-      width: 100%;
-      padding: 12px;
-      background: #FAFAFA;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
+    /* ── Disclosure rows ── */
+    .disclosure-toggle {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      font-size: 13px;
+      min-height: 44px;
+      padding: 10px 16px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      width: 100%;
+      font-family: inherit;
+      text-align: left;
+    }
+    .disclosure-toggle:active { background: rgba(0, 0, 0, 0.04); }
+    .disclosure-title {
+      font-size: 15px;
       font-weight: 500;
-      color: #374151;
-      transition: all 0.2s ease;
+      color: #000;
+      flex: 1;
     }
-
-    .setup-toggle:hover {
-      background: #F3F4F6;
+    .disclosure-badge {
+      font-size: 15px;
+      color: #8E8E93;
+      margin-right: 6px;
     }
-
+    /* .chevron kept for popup.js querySelector('.chevron') compat */
     .chevron {
+      color: #C7C7CC;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1;
       transition: transform 0.2s ease;
-      color: #9CA3AF;
+      flex-shrink: 0;
     }
+    .chevron.open { transform: rotate(90deg); }
 
-    .chevron.open {
-      transform: rotate(90deg);
-    }
-
-    .setup-content {
+    /* ── Disclosure content ── */
+    .disclosure-content {
       display: none;
-      padding: 16px;
-      font-size: 12px;
-      color: #6B7280;
-      line-height: 1.7;
-      background: #FAFAFA;
-      border-radius: 0 0 8px 8px;
-      margin-top: -4px;
+      border-top: 0.5px solid rgba(60, 60, 67, 0.18);
     }
+    .disclosure-content.open { display: block; }
 
-    .setup-content.open {
-      display: block;
+    /* ── Tool list ── */
+    .tool-scroll {
+      max-height: 260px;
+      overflow-y: auto;
     }
-
-    .setup-content ol {
-      margin: 0;
-      padding-left: 20px;
-    }
-
-    .setup-content li {
-      margin-bottom: 6px;
-    }
-
-    .setup-content code {
-      background: white;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-family: ui-monospace, 'SF Mono', Monaco, monospace;
-      font-size: 11px;
-      color: #111827;
-      border: 1px solid #E5E7EB;
-    }
-
-    /* Tool List */
-    .tool-list {
+    /* .tool-item / .tool-name / .tool-desc kept for popup.js innerHTML compat */
+    .tool-item {
+      padding: 10px 16px;
+      position: relative;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      justify-content: center;
     }
-
-    .tool-item {
-      padding: 8px 10px;
-      border-radius: 6px;
-      background: white;
-      border: 1px solid #E5E7EB;
+    .tool-item + .tool-item::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 16px; right: 0;
+      height: 0.5px;
+      background: rgba(60, 60, 67, 0.18);
     }
-
     .tool-name {
       display: block;
-      font-family: ui-monospace, 'SF Mono', Monaco, monospace;
-      font-size: 11px;
+      font-family: ui-monospace, 'SF Mono', monospace;
+      font-size: 12px;
       font-weight: 600;
-      color: #1E3A5F;
+      color: var(--color-primary);
       margin-bottom: 2px;
     }
-
     .tool-desc {
+      font-size: 12px;
+      color: #8E8E93;
+      line-height: 1.35;
+    }
+
+    /* ── Setup content ── */
+    .setup-body {
+      padding: 14px 16px;
+      font-size: 13px;
+      color: #3C3C43;
+      line-height: 1.6;
+    }
+    .setup-heading {
+      font-size: 13px;
+      font-weight: 600;
+      color: #000;
+      margin-bottom: 8px;
+    }
+    .setup-body ol,
+    .setup-body ul {
+      padding-left: 18px;
+      margin-bottom: 14px;
+    }
+    .setup-body li { margin-bottom: 5px; }
+    .setup-body code {
+      font-family: ui-monospace, 'SF Mono', monospace;
       font-size: 11px;
-      color: #6B7280;
-      line-height: 1.4;
+      background: #F2F2F7;
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: #000;
+    }
+    .setup-body a {
+      color: #007AFF;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .setup-note {
+      padding: 10px 12px;
+      background: #F2F2F7;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #3C3C43;
     }
 
-    /* Scrollbar */
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb {
-      background: #D1D5DB;
+      background: rgba(60, 60, 67, 0.2);
       border-radius: 3px;
     }
-
     ::-webkit-scrollbar-thumb:hover {
-      background: #9CA3AF;
+      background: rgba(60, 60, 67, 0.35);
     }
   </style>
 </head>
 <body>
+
   <div class="header">
-    <div class="header-content">
-      <div class="header-icon">
-        <img src="icon-48.png" alt="Canvas MCP">
-      </div>
-      <h1 class="title">Canvas MCP</h1>
+    <div class="header-icon">
+      <img src="icon-48.png" alt="Canvas MCP">
     </div>
+    <span class="header-title">Canvas MCP</span>
   </div>
 
   <div class="content">
+
     <!-- Canvas URL -->
-    <div class="card">
-      <div class="card-title">URL</div>
-      <input type="text" class="canvas-url-input" id="canvasUrlInput" placeholder="https://canvas.instructure.com">
-      <div class="button-row">
-        <button class="ghost" id="autoDetectUrl">Auto-Detect</button>
+    <div class="section-label">Canvas Instance</div>
+    <div class="section-group">
+      <div class="row">
+        <input class="url-input" type="text" id="canvasUrlInput"
+               placeholder="https://canvas.instructure.com">
+        <button class="ghost-btn" id="autoDetectUrl">Detect</button>
       </div>
-      <div class="status-message" id="canvasUrlStatus"></div>
+      <div id="canvasUrlStatus" class="status-message"></div>
     </div>
 
     <!-- Status -->
-    <div class="card">
-      <div class="card-title">Status</div>
-      <div class="status-grid">
-        <div class="status-item">
-          <span class="status-label">MCP Server</span>
-          <span class="status-value" id="nativeStatus">Checking...</span>
-        </div>
-        <div class="status-item">
-          <span class="status-label">Courses</span>
-          <span class="status-value" id="courseCount">-</span>
-        </div>
-        <div class="status-item">
-          <span class="status-label">Last Sync</span>
-          <span class="status-value" id="lastUpdate">Never</span>
-        </div>
+    <div class="section-label">Status</div>
+    <div class="section-group">
+      <div class="row">
+        <span class="row-label">MCP Server</span>
+        <span id="nativeStatus" class="status-value">Checking…</span>
+      </div>
+      <div class="row">
+        <span class="row-label">Courses</span>
+        <span id="courseCount" class="status-value">—</span>
+      </div>
+      <div class="row">
+        <span class="row-label">Last Sync</span>
+        <span id="lastUpdate" class="status-value">Never</span>
       </div>
     </div>
 
     <!-- Actions -->
-    <div class="card">
-      <div class="card-title">Actions</div>
-      <button class="primary" id="refreshData" style="width: 100%; margin-bottom: 8px;">Sync Canvas Data</button>
-      <button class="secondary" id="testListCourses" style="width: 100%;">Test Connection</button>
-      <div class="output" id="output"></div>
-    </div>
+    <button class="action-btn primary" id="refreshData">Sync Canvas Data</button>
+    <button class="action-btn secondary" id="testListCourses">Test Connection</button>
+    <div id="output" class="output"></div>
 
     <!-- Available Tools -->
-    <div class="card" style="padding: 0; overflow: hidden;">
-      <button class="setup-toggle" id="toolsToggle">
-        <span>Available Tools <span id="toolsCount" style="font-weight: 400; color: #9CA3AF;"></span></span>
-        <span class="chevron">▶</span>
+    <div style="margin-top: 20px;" class="section-group">
+      <button class="disclosure-toggle" id="toolsToggle">
+        <span class="disclosure-title">Available Tools</span>
+        <span id="toolsCount" class="disclosure-badge"></span>
+        <span class="chevron">›</span>
       </button>
-      <div class="setup-content" id="toolsContent">
-        <div class="tool-list" id="toolList">
-          <div style="color: #9CA3AF; font-size: 12px;">Loading...</div>
+      <div id="toolsContent" class="disclosure-content">
+        <div class="tool-scroll">
+          <div id="toolList"></div>
         </div>
       </div>
     </div>
 
-    <!-- Setup Instructions -->
-    <div class="card" style="padding: 0; overflow: hidden;">
-      <button class="setup-toggle" id="claudeConfigToggle">
-        <span>Claude Desktop Setup</span>
-        <span class="chevron">▶</span>
+    <!-- Setup -->
+    <div class="section-group">
+      <button class="disclosure-toggle" id="claudeConfigToggle">
+        <span class="disclosure-title">Claude Desktop Setup</span>
+        <span class="chevron">›</span>
       </button>
-      <div class="setup-content" id="claudeConfigContent">
-        <div style="font-weight: 600; margin-bottom: 10px; color: #111827;">Installation:</div>
-
-        <ol style="margin: 0 0 16px 0; padding-left: 20px;">
-          <li style="margin-bottom: 6px;">Download: <a href="https://github.com/jonasneves/canvas-mcp-server/releases/download/nightly/canvas-mcp-server-native-host.dxt" target="_blank" style="color: var(--color-primary, #1e3a5f); text-decoration: none; font-weight: 600;">canvas-mcp-server-native-host.dxt</a></li>
-          <li style="margin-bottom: 6px;">Open Claude Desktop → Extensions</li>
-          <li style="margin-bottom: 0;">Drag the .dxt file into the window</li>
-        </ol>
-
-        <div style="font-weight: 600; margin-bottom: 8px; color: #111827;">Get Your Extension ID:</div>
-        <ul style="margin: 0 0 16px 0; padding-left: 20px;">
-          <li style="margin-bottom: 4px;">Go to <code>chrome://extensions/</code></li>
-          <li style="margin-bottom: 4px;">Enable "Developer mode" (top right)</li>
-          <li style="margin-bottom: 0;">Copy the Canvas MCP Server extension ID</li>
-        </ul>
-
-        <div style="font-weight: 600; margin-bottom: 8px; color: #111827;">Optional: Chrome Native Messaging Setup</div>
-        <p style="margin: 0 0 8px 0; font-size: 11px; color: #6B7280;">
-          For native messaging integration (not needed for Claude Desktop MCP usage):
-        </p>
-        <ul style="margin: 0 0 16px 0; padding-left: 20px;">
-          <li style="margin-bottom: 4px;">Download: <a href="https://github.com/jonasneves/canvas-mcp-server/releases/download/nightly/canvas-mcp-server-chrome-extension.zip" target="_blank" style="color: var(--color-primary, #1e3a5f); text-decoration: none;">chrome-extension.zip</a></li>
-          <li style="margin-bottom: 4px;">Extract and run <code>install.sh</code> (macOS/Linux) or <code>install.bat</code> (Windows)</li>
-          <li style="margin-bottom: 0;">Enter your extension ID when prompted</li>
-        </ul>
-
-        <div style="font-weight: 600; margin-bottom: 8px; color: #111827;">Test the Connection:</div>
-        <ul style="margin: 0; padding-left: 20px;">
-          <li style="margin-bottom: 4px;">Click "Sync Canvas Data" above</li>
-          <li style="margin-bottom: 4px;">Restart Chrome and Claude Desktop</li>
-          <li style="margin-bottom: 0;">Ask Claude: "What are my Canvas courses?"</li>
-        </ul>
-
-        <div style="margin-top: 14px; padding: 10px; background: #EFF6FF; border-left: 3px solid var(--color-primary, #1e3a5f); border-radius: 4px;">
-          <div style="font-size: 11px; color: #1E40AF;">
-            <strong>Note:</strong> Claude Desktop handles everything automatically with drag-and-drop installation!
+      <div id="claudeConfigContent" class="disclosure-content">
+        <div class="setup-body">
+          <div class="setup-heading">Installation</div>
+          <ol>
+            <li>Download: <a href="https://github.com/jonasneves/canvas-mcp-server/releases/download/nightly/canvas-mcp-server-native-host.dxt" target="_blank">canvas-mcp-server-native-host.dxt</a></li>
+            <li>Open Claude Desktop → Extensions</li>
+            <li>Drag the .dxt file into the window</li>
+          </ol>
+          <div class="setup-heading">Test the Connection</div>
+          <ul style="margin-bottom: 14px;">
+            <li>Click "Sync Canvas Data" above</li>
+            <li>Restart Chrome and Claude Desktop</li>
+            <li>Ask Claude: "What are my Canvas courses?"</li>
+          </ul>
+          <div class="setup-note">
+            <strong>Tip:</strong> Claude Desktop handles everything automatically with drag-and-drop installation.
           </div>
         </div>
       </div>
     </div>
+
   </div>
 
   <script src="popup.js"></script>
