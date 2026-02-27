@@ -205,7 +205,7 @@ async function getCanvasTab() {
 
     // If no URL is configured yet, don't create a tab with default value
     if (!configuredUrl) {
-      reject(new Error('No Canvas URL configured'));
+      reject(new Error('Canvas URL not set. Open the Canvas MCP extension and enter your Canvas URL first.'));
       return;
     }
 
@@ -258,7 +258,6 @@ function sendMessageToContent(tabId, message) {
 async function refreshCanvasData() {
   const tab = await getCanvasTab();
   await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
-  await new Promise(resolve => setTimeout(resolve, 500));
 
   const [
     coursesResponse, allAssignmentsResponse, calendarEventsResponse,
@@ -283,8 +282,7 @@ async function refreshCanvasData() {
     userProfile:        userProfileResponse?.success        ? userProfileResponse.data        : null,
     missingSubmissions: missingSubmissionsResponse?.success ? missingSubmissionsResponse.data : [],
     todoItems:          todoItemsResponse?.success          ? todoItemsResponse.data          : [],
-    plannerItems:       plannerItemsResponse?.success       ? plannerItemsResponse.data       : [],
-    assignments: {}
+    plannerItems:       plannerItemsResponse?.success       ? plannerItemsResponse.data       : []
   };
 
   if (data.courses.length > 0)            canvasData.courses = data.courses;
@@ -474,7 +472,6 @@ async function handleToolCall(params) {
             target: { tabId: tab.id },
             files: ['content.js']
           });
-          await new Promise(resolve => setTimeout(resolve, 500));
           const response = await sendMessageToContent(tab.id, { type: 'FETCH_COURSES' });
           if (response && response.success) {
             canvasData.courses = response.data;
@@ -506,7 +503,6 @@ async function handleToolCall(params) {
             target: { tabId: tab.id },
             files: ['content.js']
           });
-          await new Promise(resolve => setTimeout(resolve, 500));
           const response = await sendMessageToContent(tab.id, {
             type: 'FETCH_ASSIGNMENTS',
             courseId: courseId
@@ -537,7 +533,6 @@ async function handleToolCall(params) {
           target: { tabId: tab.id },
           files: ['content.js']
         });
-        await new Promise(resolve => setTimeout(resolve, 500));
         const response = await sendMessageToContent(tab.id, { type: 'FETCH_ALL_ASSIGNMENTS' });
 
         const allAssignments = response?.success ? response.data : [];
@@ -568,7 +563,6 @@ async function handleToolCall(params) {
           target: { tabId: tab.id },
           files: ['content.js']
         });
-        await new Promise(resolve => setTimeout(resolve, 500));
         const response = await sendMessageToContent(tab.id, {
           type: 'FETCH_ASSIGNMENT_DETAILS',
           courseId: args.course_id,
@@ -601,7 +595,6 @@ async function handleToolCall(params) {
           target: { tabId: tab.id },
           files: ['content.js']
         });
-        await new Promise(resolve => setTimeout(resolve, 500));
         const response = await sendMessageToContent(tab.id, {
           type: 'FETCH_CALENDAR_EVENTS',
           startDate: args.start_date,
@@ -639,7 +632,6 @@ async function handleToolCall(params) {
           target: { tabId: tab.id },
           files: ['content.js']
         });
-        await new Promise(resolve => setTimeout(resolve, 500));
         const response = await sendMessageToContent(tab.id, {
           type: 'FETCH_USER_SUBMISSIONS',
           courseId: args.course_id
@@ -673,7 +665,6 @@ async function handleToolCall(params) {
           target: { tabId: tab.id },
           files: ['content.js']
         });
-        await new Promise(resolve => setTimeout(resolve, 500));
         const response = await sendMessageToContent(tab.id, {
           type: 'FETCH_COURSE_MODULES',
           courseId: args.course_id
@@ -707,7 +698,6 @@ async function handleToolCall(params) {
           target: { tabId: tab.id },
           files: ['content.js']
         });
-        await new Promise(resolve => setTimeout(resolve, 500));
         const response = await sendMessageToContent(tab.id, { type: 'FETCH_UPCOMING_EVENTS' });
 
         const events = response?.success ? response.data : [];
@@ -737,7 +727,6 @@ async function handleToolCall(params) {
           target: { tabId: tab.id },
           files: ['content.js']
         });
-        await new Promise(resolve => setTimeout(resolve, 500));
         const response = await sendMessageToContent(tab.id, {
           type: 'FETCH_COURSE_ANALYTICS',
           courseId: args.course_id
@@ -780,7 +769,6 @@ async function handleToolCall(params) {
           target: { tabId: tab.id },
           files: ['content.js']
         });
-        await new Promise(resolve => setTimeout(resolve, 500));
         const response = await sendMessageToContent(tab.id, { type: 'FETCH_USER_PROFILE' });
 
         if (response?.success && response.data) {
@@ -813,7 +801,6 @@ async function handleToolCall(params) {
       try {
         const tab = await getCanvasTab();
         await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
-        await new Promise(resolve => setTimeout(resolve, 500));
 
         if (args.course_id) {
           const response = await sendMessageToContent(tab.id, { type: 'FETCH_COURSE_GRADES', courseId: args.course_id });
@@ -840,7 +827,6 @@ async function handleToolCall(params) {
       try {
         const tab = await getCanvasTab();
         await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
-        await new Promise(resolve => setTimeout(resolve, 500));
         const response = await sendMessageToContent(tab.id, { type: 'FETCH_ASSIGNMENT_GROUPS', courseId: args.course_id });
         return { content: [{ type: "text", text: JSON.stringify({ courseId: args.course_id, groups: response?.success ? response.data : [] }, null, 2) }] };
       } catch (error) {
@@ -851,7 +837,6 @@ async function handleToolCall(params) {
       try {
         const tab = await getCanvasTab();
         await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
-        await new Promise(resolve => setTimeout(resolve, 500));
         const response = await sendMessageToContent(tab.id, { type: 'FETCH_COURSE_ANNOUNCEMENTS', courseId: args.course_id });
         const announcements = response?.success ? response.data : [];
         return { content: [{ type: "text", text: JSON.stringify({ courseId: args.course_id, announcements, count: announcements.length }, null, 2) }] };
@@ -863,7 +848,6 @@ async function handleToolCall(params) {
       try {
         const tab = await getCanvasTab();
         await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
-        await new Promise(resolve => setTimeout(resolve, 500));
         const response = await sendMessageToContent(tab.id, { type: 'FETCH_MISSING_SUBMISSIONS' });
         const missing = response?.success ? response.data : canvasData.missingSubmissions;
         return { content: [{ type: "text", text: JSON.stringify({ missingSubmissions: missing, count: missing.length }, null, 2) }] };
@@ -875,7 +859,6 @@ async function handleToolCall(params) {
       try {
         const tab = await getCanvasTab();
         await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
-        await new Promise(resolve => setTimeout(resolve, 500));
         const response = await sendMessageToContent(tab.id, { type: 'FETCH_TODO_ITEMS' });
         const todos = response?.success ? response.data : canvasData.todoItems;
         return { content: [{ type: "text", text: JSON.stringify({ todoItems: todos, count: todos.length }, null, 2) }] };
@@ -887,7 +870,6 @@ async function handleToolCall(params) {
       try {
         const tab = await getCanvasTab();
         await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
-        await new Promise(resolve => setTimeout(resolve, 500));
         const response = await sendMessageToContent(tab.id, { type: 'FETCH_PLANNER_ITEMS' });
         const planner = response?.success ? response.data : canvasData.plannerItems;
         return { content: [{ type: "text", text: JSON.stringify({ plannerItems: planner, count: planner.length }, null, 2) }] };
@@ -899,7 +881,6 @@ async function handleToolCall(params) {
       try {
         const tab = await getCanvasTab();
         await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
-        await new Promise(resolve => setTimeout(resolve, 500));
         const response = await sendMessageToContent(tab.id, { type: 'FETCH_DISCUSSION_TOPICS', courseId: args.course_id });
         const discussions = response?.success ? response.data : [];
         return { content: [{ type: "text", text: JSON.stringify({ courseId: args.course_id, discussions, count: discussions.length }, null, 2) }] };
@@ -911,7 +892,6 @@ async function handleToolCall(params) {
       try {
         const tab = await getCanvasTab();
         await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
-        await new Promise(resolve => setTimeout(resolve, 500));
         const response = await sendMessageToContent(tab.id, { type: 'FETCH_COURSE_PAGES', courseId: args.course_id });
         const pages = response?.success ? response.data : [];
         return { content: [{ type: "text", text: JSON.stringify({ courseId: args.course_id, pages, count: pages.length }, null, 2) }] };
@@ -923,7 +903,6 @@ async function handleToolCall(params) {
       try {
         const tab = await getCanvasTab();
         await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
-        await new Promise(resolve => setTimeout(resolve, 500));
         const response = await sendMessageToContent(tab.id, { type: 'FETCH_COURSE_FILES', courseId: args.course_id });
         const files = response?.success ? response.data : [];
         return { content: [{ type: "text", text: JSON.stringify({ courseId: args.course_id, files, count: files.length }, null, 2) }] };
@@ -939,7 +918,6 @@ async function handleToolCall(params) {
 // Keep service worker alive and auto-refresh Canvas data every 10 minutes
 if (chrome.alarms) {
   try {
-    chrome.alarms.create('keepAlive', { periodInMinutes: 1 });
     chrome.alarms.create('autoRefresh', { periodInMinutes: 10 });
     chrome.alarms.onAlarm.addListener((alarm) => {
       if (alarm.name === 'autoRefresh') {
@@ -1021,7 +999,6 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
               target: { tabId: tab.id },
               files: ['content.js']
             });
-            await new Promise(resolve => setTimeout(resolve, 500));
 
             // Fetch all data types in parallel
             const [
