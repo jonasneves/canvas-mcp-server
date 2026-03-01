@@ -12,7 +12,8 @@
     "build:native": "cd native-host && zip -r ../dist/canvas-mcp-server-native-host.dxt host.js manifest.json package.json package-lock.json",
     "release": "bash scripts/release.sh",
     "test": "echo \"No tests yet\"",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "prepare": "git config core.hooksPath .githooks"
   },
   "keywords": [
     "mcp",
