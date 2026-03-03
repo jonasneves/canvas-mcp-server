@@ -1,18 +1,21 @@
+.DEFAULT_GOAL := help
+
 .PHONY: help package test clean install-deps
 
-# Default target
 help:
-	@echo "Canvas MCP Server - Build and Release Automation"
 	@echo ""
-	@echo "Available commands:"
-	@echo "  make package       - Create release packages"
-	@echo "  make test          - Verify extension structure"
-	@echo "  make clean         - Remove build artifacts"
-	@echo "  make install-deps  - Install Node.js dependencies"
+	@echo "\033[2mBuild\033[0m"
+	@echo "  \033[36mpackage\033[0m       Create release packages"
+	@echo "  \033[36minstall-deps\033[0m  Install Node.js dependencies"
 	@echo ""
-	@echo "Examples:"
-	@echo "  make package               # Creates release with current version"
-	@echo "  VERSION=1.0.1 make package # Creates release with specific version"
+	@echo "\033[2mQuality\033[0m"
+	@echo "  \033[36mtest\033[0m          Verify extension structure"
+	@echo "  \033[36mclean\033[0m         Remove build artifacts"
+	@echo ""
+	@echo "\033[2mExamples\033[0m"
+	@echo "  make package               Creates release with current version"
+	@echo "  VERSION=1.0.1 make package Creates release with specific version"
+	@echo ""
 
 # Create release packages
 package:
